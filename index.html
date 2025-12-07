@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1"
+  />
+  <title>Nhật ký đi làm</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2563eb" />
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-soft: #dbeafe;
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text-main: #111827;
+      --text-sub: #6b7280;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .app-shell {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-bar {
+      padding: 14px 16px 10px;
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.35);
+    }
+
+    .app-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .app-subtitle {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
+    .app-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .content {
+      padding: 12px 12px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      padding: 14px 14px 12px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--text-sub);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    input,
+    textarea {
+      font-family: inherit;
+      font-size: 14px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      outline: none;
+      background: #f9fafb;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.45);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    input[type="file"] {
+      padding: 6px 2px;
+      background: transparent;
+      border: none;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .row > label {
+      flex: 1;
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .chip {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      color: var(--text-sub);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chip-primary {
+      background: var(--primary-soft);
+      color: #1d4ed8;
+      font-weight: 500;
+    }
+
+    .btn-primary {
+      margin-top: 4px;
+      padding: 10px;
+      border-radius: 999px;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.45);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary span.icon {
+      font-size: 18px;
+    }
+
+    .quick-time-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      border: none;
+      font-size: 11px;
+      padding: 4px 8px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .btn-ghost:active {
+      transform: translateY(1px);
+      background: #dbeafe;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .list-card {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    li {
+      background: #f9fafb;
+      border-radius: var(--radius-md);
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .thumb-wrapper {
+      flex-shrink: 0;
+      width: 70px;
+      height: 70px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .info {
+      flex: 1;
+      min-width: 0;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .date-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .date {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .time-line {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .note {
+      font-size: 13px;
+    }
+
+    .tag-hours {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #dcfce7;
+      color: #15803d;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .btn-small-danger {
+      border-radius: 999px;
+      border: none;
+      padding: 4px 8px;
+      font-size: 11px;
+      background: #fee2e2;
+      color: #b91c1c;
+      cursor: pointer;
+    }
+
+    .btn-small-danger:active {
+      background: #fecaca;
+    }
+
+    .empty {
+      font-size: 13px;
+      color: var(--text-sub);
+      text-align: center;
+      padding: 16px 8px;
+    }
+
+    /* full image viewer */
+    .image-viewer {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .image-viewer.active {
+      display: flex;
+    }
+
+    .image-viewer img {
+      max-width: 96vw;
+      max-height: 90vh;
+      border-radius: 18px;
+    }
+
+    .image-viewer-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(15, 23, 42, 0.75);
+      color: white;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-bar">
+      <div>
+        <div class="app-title">Nhật ký đi làm</div>
+        <div class="app-subtitle">Tự chọn giờ · Lưu ảnh · Xem offline</div>
+      </div>
+      <div class="app-avatar">⏱️</div>
+    </header>
+
+    <main class="content">
+      <!-- FORM -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Ghi lại hôm nay</div>
+            <div class="card-subtitle">Chọn giờ check in / out & ảnh</div>
+          </div>
+        </div>
+
+        <form id="entry-form">
+          <label>
+            Ngày
+            <input type="date" id="date-input" required />
+          </label>
+
+          <div class="row">
+            <label>
+              Giờ vào (check in)
+              <input type="time" id="in-input" required />
+            </label>
+            <label>
+              Giờ ra (check out)
+              <input type="time" id="out-input" required />
+            </label>
+          </div>
+
+          <div class="quick-time-row">
+            <button type="button" class="btn-ghost" id="btn-now-in">
+              ⏰ Set giờ vào = bây giờ
+            </button>
+            <button type="button" class="btn-ghost" id="btn-now-out">
+              ⏱ Set giờ ra = bây giờ
+            </button>
+          </div>
+
+          <label>
+            Ảnh chứng minh (chấm công / check in)
+            <input type="file" id="img-input" accept="image/*" />
+          </label>
+
+          <label>
+            Ghi chú
+            <textarea
+              id="note-input"
+              rows="3"
+              placeholder="Ví dụ: ca sáng, OT 2 tiếng, làm chi nhánh A..."
+            ></textarea>
+          </label>
+
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            <span>Lưu ngày đi làm</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- LIST -->
+      <section class="card list-card">
+        <div class="section-title">Lịch sử đi làm</div>
+        <div class="chip-row">
+          <div class="chip chip-primary" id="summary-chip">
+            ⌛ Tổng hôm nay: 0h
+          </div>
+          <div class="chip" id="count-chip">0 ngày đã lưu</div>
+        </div>
+        <ul id="list"></ul>
+      </section>
+    </main>
+  </div>
+
+  <!-- full image viewer -->
+  <div class="image-viewer" id="image-viewer">
+    <button class="image-viewer-close" id="viewer-close">Đóng</button>
+    <img id="viewer-img" src="" alt="Work photo" />
+  </div>
+
+  <script>
+    const KEY = "worklog";
+    let data = [];
+
+    function load() {
+      try {
+        data = JSON.parse(localStorage.getItem(KEY) || "[]");
+      } catch {
+        data = [];
+      }
+    }
+
+    function save() {
+      localStorage.setItem(KEY, JSON.stringify(data));
+    }
+
+    function parseTimeToMinutes(t) {
+      if (!t) return null;
+      const [h, m] = t.split(":").map(Number);
+      if (Number.isNaN(h) || Number.isNaN(m)) return null;
+      return h * 60 + m;
+    }
+
+    function formatDuration(mins) {
+      if (!Number.isFinite(mins) || mins <= 0) return "";
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      if (h && m) return `${h}h ${m}p`;
+      if (h) return `${h}h`;
+      return `${m}p`;
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function setTimeInputToNow(inputId) {
+      const d = new Date();
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      document.getElementById(inputId).value = `${hh}:${mm}`;
+    }
+
+    function updateSummary() {
+      const countChip = document.getElementById("count-chip");
+      const summaryChip = document.getElementById("summary-chip");
+
+      countChip.textContent = `${data.length} ngày đã lưu`;
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayItems = data.filter((x) => x.date === todayStr);
+      const totalMins = todayItems.reduce(
+        (sum, x) => sum + (x.durationMinutes || 0),
+        0
+      );
+      const pretty = formatDuration(totalMins) || "0h";
+      summaryChip.textContent = `⌛ Tổng hôm nay: ${pretty}`;
+    }
+
+    function render() {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+
+      if (data.length === 0) {
+        const div = document.createElement("div");
+        div.className = "empty";
+        div.textContent = "Chưa có ngày nào. Ghi lại lần đầu ở trên nhé!";
+        list.appendChild(div);
+        updateSummary();
+        return;
+      }
+
+      const sorted = [...data].sort((a, b) => b.date.localeCompare(a.date));
+
+      for (const item of sorted) {
+        const li = document.createElement("li");
+
+        // thumbnail ảnh
+        const thumbWrap = document.createElement("div");
+        thumbWrap.className = "thumb-wrapper";
+        if (item.imageData) {
+          const img = document.createElement("img");
+          img.src = item.imageData;
+          img.className = "thumb";
+          img.alt = "Work photo";
+          img.addEventListener("click", () => openImageViewer(item.imageData));
+          thumbWrap.appendChild(img);
+        } else {
+          thumbWrap.textContent = "Không có ảnh";
+        }
+        li.appendChild(thumbWrap);
+
+        const info = document.createElement("div");
+        info.className = "info";
+
+        const dateLine = document.createElement("div");
+        dateLine.className = "date-line";
+
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "date";
+        dateSpan.textContent = item.date;
+
+        const hoursTag = document.createElement("span");
+        hoursTag.className = "tag-hours";
+        const durTxt = formatDuration(item.durationMinutes);
+        hoursTag.textContent = durTxt ? durTxt : "—";
+
+        dateLine.appendChild(dateSpan);
+        dateLine.appendChild(hoursTag);
+        info.appendChild(dateLine);
+
+        if (item.checkIn || item.checkOut) {
+          const timeLine = document.createElement("div");
+          timeLine.className = "time-line";
+          timeLine.textContent =
+            (item.checkIn || "?") + " → " + (item.checkOut || "?");
+          info.appendChild(timeLine);
+        }
+
+        if (item.note) {
+          const noteSpan = document.createElement("div");
+          noteSpan.className = "note";
+          noteSpan.textContent = item.note;
+          info.appendChild(noteSpan);
+        }
+
+        li.appendChild(info);
+
+        const right = document.createElement("div");
+        right.className = "right-col";
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn-small-danger";
+        delBtn.textContent = "Xóa";
+        delBtn.onclick = () => {
+          if (!confirm("Xóa ngày này?")) return;
+          data = data.filter(
+            (e) => !(e.date === item.date && e.checkIn === item.checkIn)
+          );
+          save();
+          render();
+        };
+
+        right.appendChild(delBtn);
+        li.appendChild(right);
+
+        list.appendChild(li);
+      }
+
+      updateSummary();
+    }
+
+    function initDate() {
+      const today = new Date();
+      const yyyyMMdd = today.toISOString().slice(0, 10);
+      document.getElementById("date-input").value = yyyyMMdd;
+      setTimeInputToNow("in-input");
+    }
+
+    document
+      .getElementById("btn-now-in")
+      .addEventListener("click", () => setTimeInputToNow("in-input"));
+
+    document
+      .getElementById("btn-now-out")
+      .addEventListener("click", () => setTimeInputToNow("out-input"));
+
+    document
+      .getElementById("entry-form")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const date = document.getElementById("date-input").value;
+        const checkIn = document.getElementById("in-input").value;
+        const checkOut = document.getElementById("out-input").value;
+        const note = document.getElementById("note-input").value.trim();
+        const imgInput = document.getElementById("img-input");
+        const file = imgInput.files[0];
+
+        if (!date || !checkIn || !checkOut) {
+          alert("Nhập đủ ngày, giờ vào và giờ ra nhé.");
+          return;
+        }
+
+        let durationMinutes = null;
+        const inMin = parseTimeToMinutes(checkIn);
+        const outMin = parseTimeToMinutes(checkOut);
+        if (inMin != null && outMin != null) {
+          let diff = outMin - inMin;
+          if (diff < 0) diff += 24 * 60;
+          durationMinutes = diff;
+        }
+
+        let imageData = null;
+        if (file) {
+          try {
+            imageData = await readFileAsDataURL(file);
+          } catch (err) {
+            console.error(err);
+            alert("Đọc ảnh lỗi, thử chọn lại.");
+          }
+        }
+
+        const idx = data.findIndex(
+          (e) => e.date === date && e.checkIn === checkIn
+        );
+        const record = {
+          date,
+          checkIn,
+          checkOut,
+          note,
+          durationMinutes,
+        };
+
+        if (imageData) record.imageData = imageData;
+        else if (idx > -1 && data[idx].imageData)
+          record.imageData = data[idx].imageData;
+
+        if (idx > -1) data[idx] = record;
+        else data.push(record);
+
+        save();
+        render();
+
+        e.target.reset();
+        initDate();
+        imgInput.value = "";
+      });
+
+    // image viewer
+    const viewer = document.getElementById("image-viewer");
+    const viewerImg = document.getElementById("viewer-img");
+    document
+      .getElementById("viewer-close")
+      .addEventListener("click", () => closeImageViewer());
+    viewer.addEventListener("click", (e) => {
+      if (e.target === viewer) closeImageViewer();
+    });
+
+    function openImageViewer(src) {
+      viewerImg.src = src;
+      viewer.classList.add("active");
+    }
+    function closeImageViewer() {
+      viewer.classList.remove("active");
+      viewerImg.src = "";
+    }
+
+    // init
+    load();
+    initDate();
+    render();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
+    }
+  </script>
+</body>
+</html>
