@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>WorkLog Pro - Cyber Dashboard</title>
+  <title>DinhTan</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#0f172a" />
@@ -276,13 +276,15 @@
 
     /* Helpers */
     .empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 13px; font-style: italic; }
+
+    
   </style>
 </head>
 <body>
 
   <div class="container">
     <header class="header">
-      <div class="app-name">CyberLog <span style="font-size:10px; vertical-align:super; color:var(--accent)">PRO</span></div>
+      <div class="app-name">DinhTan<span style="font-size:10px; vertical-align:super; color:var(--accent)">PRO</span></div>
       <div class="header-actions">
         <button class="icon-btn" onclick="exportCSV()" title="Xuất file CSV">📂</button>
         <button class="icon-btn" onclick="openSettings()" title="Cài đặt Lương">⚙️</button>
@@ -304,7 +306,7 @@
       <div class="form-title">Check-in Hôm nay</div>
       <form id="entry-form">
         <div class="input-group">
-          <label>Ngày làm việc</label>
+          <label>Ngày làm việc <button type="button" class="btn-small" onclick="setToday()" style="float:right; transform:scale(0.8)">Today</button></label>
           <input type="date" id="date-input" required />
         </div>
 
@@ -367,12 +369,11 @@
       // Load Data
       try {
         workData = JSON.parse(localStorage.getItem(KEY_DATA) || "[]");
-        settings = JSON.parse(localStorage.getItem(KEY_SETTINGS) || '{"hourlyWage": 25000}');
+        settings = JSON.parse(localStorage.getItem(KEY_SETTINGS) || '{"hourlyWage": 20000}');
       } catch { workData = []; }
 
       // Init Date Inputs
-      const today = new Date();
-      document.getElementById("date-input").value = today.toISOString().slice(0, 10);
+      setToday(); // Mặc định vào là set ngày hôm nay
       setNow("in-input");
 
       // Populate Month Filter
@@ -408,6 +409,15 @@
       const d = new Date();
       const t = String(d.getHours()).padStart(2,'0') + ":" + String(d.getMinutes()).padStart(2,'0');
       document.getElementById(id).value = t;
+    }
+
+    // ĐÃ CẬP NHẬT: LOGIC SET TODAY
+    function setToday() {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      document.getElementById("date-input").value = `${yyyy}-${mm}-${dd}`;
     }
 
     function previewFile() {
@@ -454,7 +464,8 @@
       
       // Reset
       e.target.reset();
-      document.getElementById("date-input").value = date; // Keep date
+      // Giữ lại ngày sau khi lưu để lỡ nhập tiếp
+      document.getElementById("date-input").value = date; 
       document.getElementById("file-label").textContent = "Chọn ảnh check-in...";
       saveData();
     });
