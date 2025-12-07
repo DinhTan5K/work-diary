@@ -1,10 +1,10 @@
 {
-  "name": "Nhật ký đi làm",
-  "short_name": "Đi làm",
+  "name": "CyberLog Pro",
+  "short_name": "WorkLog",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1976d2",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
   "icons": [
     {
       "src": "icons/icon-192.png",
