@@ -1,280 +1,200 @@
-/* ===== ShiftTrack — Firestore Version ===== */
-
 import { db } from "./firebase.js";
 import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  where
+  collection, addDoc, getDocs, updateDoc, deleteDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ---------- Utils ---------- */
-const haptic = (p=[8])=>{try{navigator.vibrate&&navigator.vibrate(p)}catch{}};
-const fmtTime = ts => {
-  const d=new Date(ts);
-  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+const COL = collection(db,"work_logs");
+let USER_WAGE = parseInt(localStorage.getItem('shift_wage')) || 20000;
+
+const CLOUD = "do48qpmut";
+const PRESET = "shifttrack";
+
+const $ = q=>document.querySelector(q);
+const fmtMoney = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+// Keep format date for CSV, but UI uses custom split (Day/Month)
+const fmtDateFull = d => new Date(d).toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'});
+
+let tempImgFile = null;
+
+// -------- Upload --------
+async function upload(file){
+  if(!file) return null;
+  const f=new FormData();
+  f.append("file",file);
+  f.append("upload_preset",PRESET);
+  const r=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`,{method:"POST",body:f});
+  const d=await r.json();
+  return d.secure_url||null;
+}
+
+// -------- Modal Logic --------
+const modal = $("#logModal");
+const inpStart = $("#inpStart");
+const inpEnd = $("#inpEnd");
+const inpNote = $("#inpNote");
+const imgName = $("#imgName");
+
+$("#fab").onclick = () => {
+  const now = new Date();
+  const past = new Date(now.getTime() - 4*60*60*1000); 
+  const toLocalISO = (date) => {
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().slice(0,16);
+  };
+  inpEnd.value = toLocalISO(now);
+  inpStart.value = toLocalISO(past);
+  inpNote.value = "";
+  tempImgFile = null;
+  imgName.innerText = "";
+  modal.classList.remove("hidden");
 };
-const fmtDateTime = ts => {
-  const d=new Date(ts),p=n=>String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-};
-const fmtHours = ms => (ms/3600000).toFixed(2).replace(".00","")+"h";
-const todayKey = ()=>new Date().toISOString().slice(0,10);
-const currency = n=>new Intl.NumberFormat("vi-VN").format(n);
 
-/* ---------- Core (Firestore) ---------- */
-const Core = (() => {
-  const COL = collection(db,"work_logs");
-  const WAGE = 20000;
+$("#btnCancel").onclick = () => modal.classList.add("hidden");
 
-  const normalize = d => ({ id:d.id, ...d.data() });
-
-  return {
-    getLogs: async (filters={}) => {
-      const snap = await getDocs(COL);
-      let arr = snap.docs.map(normalize).sort((a,b)=>b.start-a.start);
-
-      const { range="all", shift="all" } = filters;
-      const now=new Date();
-      const startOf=t=>{
-        const d=new Date(now);d.setHours(0,0,0,0);
-        if(t==="week"){const day=d.getDay()||7;d.setDate(d.getDate()-(day-1))}
-        if(t==="month"){d.setDate(1)}
-        return d.getTime();
-      };
-
-      if(range!=="all"){
-        const ts=startOf(range);
-        arr=arr.filter(l=>l.start>=ts);
-      }
-      if(shift==="day") arr=arr.filter(l=>!l.isNight);
-      if(shift==="night") arr=arr.filter(l=>l.isNight);
-      return arr;
-    },
-
-    checkIn: async ()=>{
-      const snap=await getDocs(query(COL,where("end","==",null)));
-      if(!snap.empty) return;
-      await addDoc(COL,{
-        start:Date.now(),
-        end:null,
-        duration:0,
-        wage:0,
-        note:"",
-        isNight:false,
-        isOT:false
-      });
-    },
-
-    checkOut: async ()=>{
-      const snap=await getDocs(query(COL,where("end","==",null)));
-      if(snap.empty) return;
-      const d=snap.docs[0];
-      const start=d.data().start;
-      const end=Date.now();
-      const duration=end-start;
-      await updateDoc(doc(db,"work_logs",d.id),{
-        end,
-        duration,
-        wage:Math.round(WAGE*duration/3600000),
-        isOT:duration/3600000>8
-      });
-    },
-
-    addLog: async (start,end,note="Manual")=>{
-      const duration=end-start;
-      await addDoc(COL,{
-        start,end,duration,
-        wage:Math.round(WAGE*duration/3600000),
-        note,
-        isNight:false,
-        isOT:duration/3600000>8
-      });
-    },
-
-    deleteLog: async id=>{
-      await deleteDoc(doc(db,"work_logs",id));
-    },
-
-    addNote: async (id,note)=>{
-      await updateDoc(doc(db,"work_logs",id),{note});
-    },
-
-    toggleOT: async id=>{
-      const ref=doc(db,"work_logs",id);
-      const snap=await getDocs(query(COL));
-      const d=snap.docs.find(x=>x.id===id);
-      if(d) await updateDoc(ref,{isOT:!d.data().isOT});
-    },
-
-    toggleNight: async id=>{
-      const ref=doc(db,"work_logs",id);
-      const snap=await getDocs(query(COL));
-      const d=snap.docs.find(x=>x.id===id);
-      if(d) await updateDoc(ref,{isNight:!d.data().isNight});
-    },
-
-    getStats: async ()=>{
-      const logs=await Core.getLogs({range:"all"});
-      const sod=new Date();sod.setHours(0,0,0,0);
-      const sow=new Date(sod);sow.setDate(sow.getDate()-(sow.getDay()||7)+1);
-      const som=new Date(sod);som.setDate(1);
-      const sum=a=>a.reduce((s,l)=>s+(l.duration||0),0);
-      return{
-        today:sum(logs.filter(l=>l.start>=sod)),
-        week:sum(logs.filter(l=>l.start>=sow)),
-        month:sum(logs.filter(l=>l.start>=som)),
-        wage:logs.reduce((s,l)=>s+(l.wage||0),0)
-      };
+$("#btnPickImg").onclick = () => {
+  const i = document.createElement("input");
+  i.type="file"; i.accept="image/*";
+  i.onchange = () => {
+    if(i.files[0]){
+      tempImgFile = i.files[0];
+      imgName.innerText = "Selected: " + i.files[0].name;
     }
   };
-})();
-
-/* ---------- UI ---------- */
-const UI={filters:{range:"today",shift:"all"},activeLogId:null};
-
-const renderStats=async()=>{
-  const s=await Core.getStats();
-  statToday.textContent=fmtHours(s.today);
-  statWeek.textContent=fmtHours(s.week);
-  statMonth.textContent=fmtHours(s.month);
-  statWage.textContent=currency(s.wage)+"đ";
+  i.click();
 };
 
-const renderTimeline=async()=>{
-  const logs=await Core.getLogs(UI.filters);
-  skeleton.classList.add("hidden");
-  timeline.innerHTML="";
-  if(!logs.length){emptyState.classList.remove("hidden");return;}
-  emptyState.classList.add("hidden");
+$("#btnSave").onclick = async () => {
+  const start = new Date(inpStart.value).getTime();
+  const end = new Date(inpEnd.value).getTime();
+  const note = inpNote.value;
 
-  const groups={};
-  logs.forEach(l=>{
-    const k=new Date(l.start).toISOString().slice(0,10);
-    (groups[k]=groups[k]||[]).push(l);
+  if(start >= end){ alert("End time must be after Start time!"); return; }
+  $("#btnSave").innerText = "Saving...";
+  
+  const dur = end - start;
+  const wage = Math.round(USER_WAGE * (dur/3600000));
+  const img = await upload(tempImgFile);
+
+  await addDoc(COL, {
+    start, end, duration: dur,
+    wageRate: USER_WAGE,
+    totalMoney: wage,
+    note: note,
+    image: img 
   });
 
-  Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([day,items])=>{
-    const g=document.createElement("div");
-    g.className="day-group";
-    g.innerHTML=`<div class="day-header">
-      <div class="day-title">${new Date(day).toLocaleDateString("vi-VN",{weekday:"long",day:"2-digit",month:"2-digit"})}</div>
-      <div class="day-subtitle">${items.length} ca</div>
-    </div>`;
-    items.forEach(l=>{
-      const c=document.createElement("div");
-      c.className="card"+(day===todayKey()?" today":"");
-      c.innerHTML=`
-      <div class="card-icon"><i class="fa-solid fa-clock"></i></div>
-      <div class="card-main">
-        <div class="card-time">${fmtTime(l.start)}${l.end?" — "+fmtTime(l.end):""}</div>
-        <div class="card-meta">
-          ${l.end?fmtHours(l.duration):"Running"}
-          ${l.wage?`<span class="badge pay">${currency(l.wage)}đ</span>`:""}
-          ${l.isNight?`<span class="badge night">🌙</span>`:""}
-          ${l.isOT?`<span class="badge ot">OT</span>`:""}
-          ${l.note?`<span>📝 ${l.note}</span>`:""}
+  $("#btnSave").innerText = "Save Entry";
+  modal.classList.add("hidden");
+  render();
+};
+
+// -------- RENDER (TICKET STYLE) --------
+async function render(){
+  const snap = await getDocs(COL);
+  const logs = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.start-a.start);
+
+  $("#timeline").innerHTML = "";
+
+  const now = new Date();
+  let mHours = 0, mMoney = 0, totalMoneyAll = 0;
+
+  logs.forEach(l => {
+    totalMoneyAll += l.totalMoney || 0;
+    const d = new Date(l.start);
+    if(d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()){
+      mHours += (l.duration || 0);
+      mMoney += (l.totalMoney || 0);
+    }
+
+    // --- Date Formatting for Ticket ---
+    const day = d.getDate();
+    const month = "T" + (d.getMonth() + 1);
+    const startTime = new Date(l.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const endTime = new Date(l.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const hours = (l.duration/3600000).toFixed(1) + "h";
+    
+    // Escape quote for onClick
+    const safeNote = (l.note || "").replace(/'/g, "\\'"); 
+
+    const c = document.createElement("div");
+    c.className = "card";
+    
+    c.innerHTML = `
+      <div class="card-left">
+        <div class="date-day">${day}</div>
+        <div class="date-month">${month}</div>
+      </div>
+
+      <div class="card-body">
+        <div class="time-row">
+          <span class="time-start-end">${startTime} - ${endTime}</span>
+          <span class="duration-badge">${hours}</span>
+        </div>
+        
+        <div class="meta-row">
+          ${l.note ? `<div class="note-text"><i class="fa-solid fa-note-sticky"></i> ${l.note}</div>` : '<div class="note-text" style="opacity:0.3">No note</div>'}
+          ${l.image ? `<a href="${l.image}" target="_blank" class="btn-img-mini"><i class="fa-solid fa-image"></i> Pic</a>` : ''}
         </div>
       </div>
-      <div class="card-actions">
-        ${!l.end?`<button class="btn-mini" data-act="checkout" data-id="${l.id}">⏹</button>`:""}
-        <button class="btn-mini" data-act="more" data-id="${l.id}">⋮</button>
-      </div>`;
-      g.appendChild(c);
-    });
-    timeline.appendChild(g);
+
+      <div class="card-right">
+        <div class="money-tag">${fmtMoney(l.totalMoney)}</div>
+        
+        <div class="action-menu">
+          <button class="btn-icon" onclick="updateNote('${l.id}', '${safeNote}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn-icon del" onclick="del('${l.id}')"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    `;
+    $("#timeline").appendChild(c);
   });
 
-  timeline.querySelectorAll(".btn-mini").forEach(b=>{
-    b.onclick=async e=>{
-      const {act,id}=e.currentTarget.dataset;
-      haptic([5]);
-      if(act==="checkout") await Core.checkOut();
-      if(act==="more"){UI.activeLogId=id;openBottomSheet(true);}
-      await refresh();
-    };
-  });
+  $("#monthHours").innerText = (mHours/3600000).toFixed(1) + "h";
+  $("#monthMoney").innerText = fmtMoney(mMoney);
+  $("#totalMoney").innerText = "Total: " + fmtMoney(totalMoneyAll);
+}
+
+// -------- Tools --------
+
+window.updateNote = async (id, oldNote) => {
+    const newNote = prompt("Update note:", oldNote);
+    if(newNote !== null) {
+        await updateDoc(doc(db, "work_logs", id), { note: newNote });
+        render();
+    }
+}
+
+$("#btnSettings").onclick = () => {
+  const w = prompt("Hourly Rate (VND):", USER_WAGE);
+  if(w && !isNaN(w)){
+    USER_WAGE = parseInt(w);
+    localStorage.setItem('shift_wage', USER_WAGE);
+    alert("Saved!");
+  }
 };
 
-const refresh=async()=>{await renderStats();await renderTimeline();};
-
-/* ---------- Events ---------- */
-window.addEventListener("DOMContentLoaded",async()=>{
-  document.querySelectorAll(".chip").forEach(c=>{
-    c.onclick=async e=>{
-      document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
-      e.target.classList.add("active");
-      if(e.target.dataset.range) UI.filters.range=e.target.dataset.range;
-      if(e.target.dataset.shift) UI.filters.shift=e.target.dataset.shift;
-      await refresh();
-    };
+$("#btnExport").onclick = async () => {
+  if(!confirm("Download CSV?")) return;
+  const snap = await getDocs(COL);
+  const logs = snap.docs.map(d=>d.data()).sort((a,b)=>b.start-a.start);
+  
+  let csvContent = "\uFEFFDate,Start,End,Hours,Money,Note\n";
+  logs.forEach(l => {
+    const note = l.note ? `"${l.note.replace(/"/g, '""')}"` : "";
+    csvContent += `${fmtDateFull(l.start)},${new Date(l.start).toLocaleTimeString()},${new Date(l.end).toLocaleTimeString()},${(l.duration/3600000).toFixed(2)},${l.totalMoney},${note}\n`;
   });
+  
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+  link.download = `WorkLog_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+};
 
-  let t;
-  fab.onpointerdown=()=>{t=setTimeout(openBottomSheet,500)};
-  fab.onpointerup=async()=>{
-    if(t){clearTimeout(t);const logs=await Core.getLogs({range:"today"});
-      logs.some(l=>!l.end)?await Core.checkOut():await Core.checkIn();
-      await refresh();
-    }
-  };
-
-  sheetBackdrop.onclick=()=>bottomSheet.classList.add("hidden");
-  await refresh();
-});
-
-function openBottomSheet() {
-  sheetBackdrop.classList.remove("hidden");
-  bottomSheet.classList.remove("hidden");
-
-  sheetContent.innerHTML = `
-    <div class="sheet-grid">
-      <div class="sheet-btn" id="btnAddManual">
-        <i class="fa-solid fa-plus"></i> Thêm ca thủ công
-      </div>
-      <div class="sheet-btn" id="btnCancel">
-        <i class="fa-solid fa-xmark"></i> Huỷ
-      </div>
-    </div>
-  `;
-
-  document.getElementById("btnCancel").onclick = closeBottomSheet;
-  document.getElementById("btnAddManual").onclick = addManualShift;
-}
-
-function closeBottomSheet() {
-  sheetBackdrop.classList.add("hidden");
-  bottomSheet.classList.add("hidden");
-}
-
-async function addManualShift() {
-  try {
-    const date = prompt("Ngày (YYYY-MM-DD)", todayKey());
-    if (!date) return;
-
-    const startTime = prompt("Giờ bắt đầu (HH:mm)", "08:00");
-    if (!startTime) return;
-
-    const endTime = prompt("Giờ kết thúc (HH:mm)", "17:00");
-    if (!endTime) return;
-
-    const start = new Date(`${date}T${startTime}`).getTime();
-    const end = new Date(`${date}T${endTime}`).getTime();
-
-    if (end <= start) {
-      alert("❌ Giờ kết thúc phải lớn hơn giờ bắt đầu");
-      return;
-    }
-
-    await Core.addLog(start, end, "Thêm thủ công");
-    closeBottomSheet();
-    await refresh();
-  } catch (e) {
-    alert("❌ Lỗi khi thêm ca");
-    console.error(e);
+window.del = async id => {
+  if(confirm("Delete this entry?")) {
+    await deleteDoc(doc(db,"work_logs",id));
+    render();
   }
-}
+};
+
+render();
