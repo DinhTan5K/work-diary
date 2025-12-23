@@ -1,129 +1,80 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>ShiftTrack — Cyber Glass</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1" />
-  <meta name="theme-color" content="#09090b" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <link rel="manifest" href="manifest.webmanifest" />
+  <meta charset="UTF-8">
+  <title>Kaito WorkLog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f0c29">
   
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <link rel="stylesheet" href="style.css" />
-  
-  <style>
-    /* CSS bổ sung cho các nút bấm tạo ra bằng Javascript */
-    #sheetContent { padding: 0 16px 20px; color: #fff; }
-    .sheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
-    .sheet-btn {
-      padding: 16px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px; color: #eef1f5;
-      font-size: 14px; font-weight: 600;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .sheet-btn:active { background: rgba(0, 242, 255, 0.1); border-color: #00f2ff; color: #00f2ff; transform: scale(0.98); }
-    .sheet-btn i { font-size: 16px; }
-  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <header class="app-header glass sticky">
-    <div class="header-left">
-      <div class="brand">
-        <span class="brand-dot"></span>
-        <span class="brand-text">ShiftTrack</span>
-      </div>
-    </div>
-    <div class="header-right">
-      <button id="btnSettings" class="icon-btn" aria-label="Install">
-        <i class="fa-solid fa-download"></i>
-      </button>
-    </div>
-  </header>
 
-  <section class="stats-bar glass sticky">
-    <div class="stats-item">
-      <div class="stats-header">
-        <span class="stats-title">Hôm nay</span>
-      </div>
-      <div id="statToday" class="stats-value">0h</div>
-    </div>
-    <div class="stats-item">
-      <div class="stats-header">
-        <span class="stats-title">Tuần</span>
-      </div>
-      <div id="statWeek" class="stats-value">0h</div>
-    </div>
-    <div class="stats-item">
-      <div class="stats-header">
-        <span class="stats-title">Tháng</span>
-      </div>
-      <div id="statMonth" class="stats-value">0h</div>
-    </div>
-    <div class="stats-item">
-      <div class="stats-header">
-        <span class="stats-title">Lương</span>
-      </div>
-      <div id="statWage" class="stats-value">0</div>
-    </div>
-  </section>
+<div class="bg-gradient"></div>
 
-  <section class="filters glass">
-    <div class="filter-group">
-      <button data-range="today" class="chip active">Hôm nay</button>
-      <button data-range="week" class="chip">Tuần</button>
-      <button data-range="month" class="chip">Tháng</button>
-    </div>
-    <div class="filter-group">
-      <button data-shift="all" class="chip active">Tất cả</button>
-      <button data-shift="day" class="chip">Ngày</button>
-      <button data-shift="night" class="chip">Đêm</button>
-    </div>
-  </section>
+<header class="header glass">
+  <div class="brand">
+    <div class="logo-text">KAITO.</div>
+  </div>
+  <div class="header-actions">
+    <button id="btnSettings" title="Settings"><i class="fa-solid fa-sliders"></i></button>
+    <button id="btnExport" title="Export CSV"><i class="fa-solid fa-download"></i></button>
+  </div>
+</header>
 
-  <section class="chart glass">
-    <svg id="miniChart" width="100%" height="56" viewBox="0 0 300 56" preserveAspectRatio="none"></svg>
-  </section>
+<section class="stats-container">
+  <div class="stat-box glass">
+    <div class="label">Work Hours</div>
+    <div class="hours" id="monthHours">0h</div>
+  </div>
+  <div class="stat-box glass highlight">
+    <div class="label">Earnings</div>
+    <div class="money" id="monthMoney">0 đ</div>
+    <div class="sub-money" id="totalMoney">Total: 0 đ</div>
+  </div>
+</section>
 
-  <main id="content">
-    <div id="skeleton" class="skeleton-list"></div>
+<main id="timeline"></main>
+
+<button id="fab" class="fab">
+  <i class="fa-solid fa-plus"></i>
+</button>
+
+<div id="logModal" class="modal-overlay hidden">
+  <div class="modal glass">
+    <h3>New Entry</h3>
     
-    <div id="emptyState" class="empty-state hidden">
-      <div class="empty-art">
-        <i class="fa-solid fa-ghost" style="font-size: 50px; color: rgba(255,255,255,0.1); margin-bottom: 20px;"></i>
+    <div class="row-input">
+      <div class="input-group">
+        <label>Start Time</label>
+        <input type="datetime-local" id="inpStart">
       </div>
-      <div class="empty-title">Không có dữ liệu</div>
-      <div class="empty-desc">Chạm giữ nút vân tay để thêm ca cũ</div>
+      <div class="input-group">
+        <label>End Time</label>
+        <input type="datetime-local" id="inpEnd">
+      </div>
     </div>
 
-    <div id="timeline" class="timeline"></div>
-  </main>
+    <div class="input-group">
+      <label>Description</label>
+      <input type="text" id="inpNote" placeholder="Project name / Task...">
+    </div>
 
-  <div class="fab-wrap">
-    <button id="fab" class="fab" aria-label="Check-in/out">
-      <i class="fa-solid fa-fingerprint"></i>
-    </button>
+    <div class="photo-opt">
+      <button id="btnPickImg" class="btn-outline"><i class="fa-solid fa-image"></i> Attach Image</button>
+      <span id="imgName" class="muted-text"></span>
+    </div>
+
+    <div class="modal-actions">
+      <button id="btnCancel" class="btn-sec">Close</button>
+      <button id="btnSave" class="btn-pri">Save Entry</button>
+    </div>
   </div>
+</div>
 
-  <div id="sheetBackdrop" class="sheet-backdrop hidden"></div>
-  <div id="bottomSheet" class="bottom-sheet hidden">
-    <div class="sheet-handle"></div>
-    <div id="sheetContent"></div>
-  </div>
-
-  <div id="toast" class="toast hidden">
-    <i class="fa-solid fa-check-circle" style="margin-right: 8px; color: var(--success)"></i>
-    <span id="toastMsg">Thông báo</span>
-  </div>
-
-  <script type="module" src="app.js"></script>
-
+<script type="module" src="app.js"></script>
 </body>
 </html>
