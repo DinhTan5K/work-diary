@@ -10,8 +10,7 @@ const CLOUD = "do48qpmut";
 const PRESET = "shifttrack";
 
 const $ = q=>document.querySelector(q);
-const fmtMoney = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-// Keep format date for CSV, but UI uses custom split (Day/Month)
+const fmtMoney = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(n) || 0);
 const fmtDateFull = d => new Date(d).toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'});
 
 let tempImgFile = null;
@@ -76,11 +75,13 @@ $("#btnSave").onclick = async () => {
   const img = await upload(tempImgFile);
 
   await addDoc(COL, {
-    start, end, duration: dur,
-    wageRate: USER_WAGE,
-    totalMoney: wage,
-    note: note,
-    image: img 
+    start,
+    end,
+    duration: Number(dur),          // ✅ ensure number
+    wageRate: Number(USER_WAGE),     // ✅ ensure number
+    totalMoney: Number(wage),        // ✅ ensure number
+    note: note || "",
+    image: img || null
   });
 
   $("#btnSave").innerText = "Save Entry";
@@ -91,7 +92,9 @@ $("#btnSave").onclick = async () => {
 // -------- RENDER (TICKET STYLE) --------
 async function render(){
   const snap = await getDocs(COL);
-  const logs = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.start-a.start);
+  const logs = snap.docs
+    .map(d=>({id:d.id,...d.data()}))
+    .sort((a,b)=>Number(b.start)-Number(a.start));
 
   $("#timeline").innerHTML = "";
 
@@ -99,20 +102,27 @@ async function render(){
   let mHours = 0, mMoney = 0, totalMoneyAll = 0;
 
   logs.forEach(l => {
-    totalMoneyAll += l.totalMoney || 0;
-    const d = new Date(l.start);
+    // ✅ HARD FIX: cast everything to number
+    const startMs = Number(l.start) || 0;
+    const endMs = Number(l.end) || 0;
+    const durMs = Number(l.duration) || (endMs - startMs) || 0;
+    const money = Number(l.totalMoney) || 0;
+
+    totalMoneyAll += money;
+
+    const d = new Date(startMs);
     if(d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()){
-      mHours += (l.duration || 0);
-      mMoney += (l.totalMoney || 0);
+      mHours += durMs;
+      mMoney += money;
     }
 
     // --- Date Formatting for Ticket ---
     const day = d.getDate();
     const month = "T" + (d.getMonth() + 1);
-    const startTime = new Date(l.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    const endTime = new Date(l.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    const hours = (l.duration/3600000).toFixed(1) + "h";
-    
+    const startTime = new Date(startMs).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const endTime = new Date(endMs).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const hours = (durMs/3600000).toFixed(1) + "h";
+
     // Escape quote for onClick
     const safeNote = (l.note || "").replace(/'/g, "\\'"); 
 
@@ -138,7 +148,7 @@ async function render(){
       </div>
 
       <div class="card-right">
-        <div class="money-tag">${fmtMoney(l.totalMoney)}</div>
+        <div class="money-tag">${fmtMoney(money)}</div>
         
         <div class="action-menu">
           <button class="btn-icon" onclick="updateNote('${l.id}', '${safeNote}')"><i class="fa-solid fa-pen"></i></button>
@@ -155,13 +165,12 @@ async function render(){
 }
 
 // -------- Tools --------
-
 window.updateNote = async (id, oldNote) => {
-    const newNote = prompt("Update note:", oldNote);
-    if(newNote !== null) {
-        await updateDoc(doc(db, "work_logs", id), { note: newNote });
-        render();
-    }
+  const newNote = prompt("Update note:", oldNote);
+  if(newNote !== null) {
+    await updateDoc(doc(db, "work_logs", id), { note: newNote });
+    render();
+  }
 }
 
 $("#btnSettings").onclick = () => {
@@ -176,12 +185,17 @@ $("#btnSettings").onclick = () => {
 $("#btnExport").onclick = async () => {
   if(!confirm("Download CSV?")) return;
   const snap = await getDocs(COL);
-  const logs = snap.docs.map(d=>d.data()).sort((a,b)=>b.start-a.start);
+  const logs = snap.docs.map(d=>d.data()).sort((a,b)=>Number(b.start)-Number(a.start));
   
   let csvContent = "\uFEFFDate,Start,End,Hours,Money,Note\n";
   logs.forEach(l => {
-    const note = l.note ? `"${l.note.replace(/"/g, '""')}"` : "";
-    csvContent += `${fmtDateFull(l.start)},${new Date(l.start).toLocaleTimeString()},${new Date(l.end).toLocaleTimeString()},${(l.duration/3600000).toFixed(2)},${l.totalMoney},${note}\n`;
+    const startMs = Number(l.start) || 0;
+    const endMs = Number(l.end) || 0;
+    const durMs = Number(l.duration) || (endMs - startMs) || 0;
+    const money = Number(l.totalMoney) || 0;
+
+    const note = l.note ? `"${String(l.note).replace(/"/g, '""')}"` : "";
+    csvContent += `${fmtDateFull(startMs)},${new Date(startMs).toLocaleTimeString()},${new Date(endMs).toLocaleTimeString()},${(durMs/3600000).toFixed(2)},${money},${note}\n`;
   });
   
   const link = document.createElement("a");
