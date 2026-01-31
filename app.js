@@ -98,32 +98,41 @@ async function render(){
 
   $("#timeline").innerHTML = "";
 
-  const now = new Date();
+  // ✅ nếu không có log
+  if(logs.length === 0){
+    $("#monthHours").innerText = "0.0h";
+    $("#monthMoney").innerText = fmtMoney(0);
+    $("#totalMoney").innerText = "Total: " + fmtMoney(0);
+    return;
+  }
+
+  // ✅ Month stats sẽ tính theo THÁNG CỦA LOG MỚI NHẤT (đang hiển thị trên top)
+  const activeDate = new Date(Number(logs[0].start) || Date.now());
+  const activeMonth = activeDate.getMonth();
+  const activeYear = activeDate.getFullYear();
+
   let mHours = 0, mMoney = 0, totalMoneyAll = 0;
 
   logs.forEach(l => {
-    // ✅ HARD FIX: cast everything to number
     const startMs = Number(l.start) || 0;
-    const endMs = Number(l.end) || 0;
-    const durMs = Number(l.duration) || (endMs - startMs) || 0;
-    const money = Number(l.totalMoney) || 0;
+    const endMs   = Number(l.end) || 0;
+    const durMs   = Number(l.duration) || (endMs - startMs) || 0;
+    const money   = Number(l.totalMoney) || 0;
 
     totalMoneyAll += money;
 
     const d = new Date(startMs);
-    if(d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()){
+    if(d.getMonth() === activeMonth && d.getFullYear() === activeYear){
       mHours += durMs;
       mMoney += money;
     }
 
-    // --- Date Formatting for Ticket ---
     const day = d.getDate();
     const month = "T" + (d.getMonth() + 1);
     const startTime = new Date(startMs).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     const endTime = new Date(endMs).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     const hours = (durMs/3600000).toFixed(1) + "h";
 
-    // Escape quote for onClick
     const safeNote = (l.note || "").replace(/'/g, "\\'"); 
 
     const c = document.createElement("div");
@@ -190,9 +199,9 @@ $("#btnExport").onclick = async () => {
   let csvContent = "\uFEFFDate,Start,End,Hours,Money,Note\n";
   logs.forEach(l => {
     const startMs = Number(l.start) || 0;
-    const endMs = Number(l.end) || 0;
-    const durMs = Number(l.duration) || (endMs - startMs) || 0;
-    const money = Number(l.totalMoney) || 0;
+    const endMs   = Number(l.end) || 0;
+    const durMs   = Number(l.duration) || (endMs - startMs) || 0;
+    const money   = Number(l.totalMoney) || 0;
 
     const note = l.note ? `"${String(l.note).replace(/"/g, '""')}"` : "";
     csvContent += `${fmtDateFull(startMs)},${new Date(startMs).toLocaleTimeString()},${new Date(endMs).toLocaleTimeString()},${(durMs/3600000).toFixed(2)},${money},${note}\n`;
