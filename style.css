@@ -281,21 +281,24 @@ body {
   .header-panel { padding: 10px 10px 10px 16px; }
   .logo-text { font-size: 1.2rem; }
   
-  .stats-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 24px; }
-  .stat-card { padding: 20px; }
+  /* Giữ 2 cột cho stats grid để tiết kiệm chiều dọc */
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .stat-card { padding: 16px 12px; }
+  .stat-info .value { font-size: 1.4rem; }
+  .stat-info .label { font-size: 0.75rem; }
   
-  .work-card { padding: 16px 12px; gap: 12px; }
+  .work-card { padding: 16px 12px; gap: 10px; }
   
-  /* Fix Progress Ring on mobile */
-  .progress-wrapper { width: 70px; height: 70px; min-width: 70px; min-height: 70px; }
-  .progress-ring { width: 70px; height: 70px; min-width: 70px; min-height: 70px; }
-  .ring-val, .ring-bg { r: 30; cx: 35; cy: 35; stroke-dasharray: 188.5; stroke-dashoffset: 188.5; }
+  /* Scale progress ring down without breaking JS math */
+  .progress-wrapper { transform: scale(0.85); transform-origin: right center; }
   
-  .card-date { width: 50px; height: 50px; border-radius: 12px; }
-  .d-day { font-size: 1.2rem; }
+  .card-date { width: 46px; height: 46px; border-radius: 12px; }
+  .d-day { font-size: 1.1rem; }
   .time-range { font-size: 0.95rem; }
   .wage-display { font-size: 1rem; }
   
   .modal-content { padding: 24px 16px; border-radius: 24px 24px 0 0; }
-  .shift-grid { grid-template-columns: 1fr; }
+  /* Giữ 2 cột cho shift-grid để modal không bị quá dài */
+  .shift-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .shift-btn { padding: 12px; font-size: 0.9rem; }
 }
