@@ -34,6 +34,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2c2c2e; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3c; }
+
 .app-container { max-width: 600px; margin: 0 auto; padding: 20px; }
 
 /* =========================================
@@ -121,8 +127,13 @@ body {
   padding: 16px 20px; margin-bottom: 16px; 
   display: grid; grid-template-columns: auto 1fr auto; gap: 16px; 
   align-items: center; transition: transform 0.2s, background-color 0.2s;
+  opacity: 0; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
-.work-card:hover { background: #1a1a1c; transform: scale(1.02); }
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.work-card:hover { background: #1a1a1c; transform: translateY(-2px) scale(1.02); }
 .work-card:active { transform: scale(0.98); }
 
 /* Date Box */
@@ -164,7 +175,7 @@ body {
 .fab-main {
   position: fixed; bottom: 30px; right: 20px; width: 64px; height: 64px;
   background: var(--text-main); border: none; border-radius: 24px;
-  color: #fff; font-size: 24px;
+  color: #000; font-size: 24px;
   z-index: 100; cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex; align-items: center; justify-content: center;
 }
@@ -181,6 +192,7 @@ body {
   width: 100%; max-width: 600px; background: var(--bg-color); border-radius: 32px 32px 0 0;
   padding: 32px 24px;
   transform: translateY(0); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  max-height: 90vh; overflow-y: auto;
 }
 @media (min-width: 600px) { .modal-backdrop { align-items: center; } .modal-content { border-radius: 32px; width: 90%; } }
 
@@ -201,21 +213,27 @@ body {
 .shift-btn {
   padding: 16px; border: none; border-radius: var(--radius-sm); background: var(--card-bg);
   color: var(--text-main); font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s;
+  position: relative; /* Thêm position relative để chứa nút xóa */
 }
 .shift-btn:hover { background: #2c2c2e; transform: translateY(-2px); }
 .shift-btn.active { background: var(--text-main); color: #000; }
 
-.btn-upload {
-  width: 100%; padding: 18px; border: 2px dashed #3a3a3c; background: transparent;
-  color: var(--text-muted); font-weight: 700; border-radius: var(--radius-sm); cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;
+.btn-delete-shift {
+  position: absolute; top: -6px; right: -6px; width: 20px; height: 20px;
+  background: #ff6b6b; color: #fff; border: none; border-radius: 50%;
+  font-size: 10px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; opacity: 0; transform: scale(0.8); transition: 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
-.btn-upload:hover { border-color: var(--text-main); color: var(--text-main); background: rgba(255,255,255,0.05); }
-.file-status { text-align: center; font-size: 0.85rem; margin-top: 8px; color: var(--text-main); font-weight: 600; }
+.shift-btn:hover .btn-delete-shift { opacity: 1; transform: scale(1); }
+.btn-delete-shift:hover { background: #ff4757; transform: scale(1.2) !important; }
+
+
 
 .modal-footer { display: flex; gap: 12px; margin-top: 24px; }
 .btn-primary {
   flex: 2; padding: 18px; border-radius: 100px; border: none; background: var(--text-main);
-  color: #fff; font-weight: 800; font-size: 1.1rem; cursor: pointer; transition: 0.2s;
+  color: #000000; font-weight: 800; font-size: 1.1rem; cursor: pointer; transition: 0.2s;
 }
 .btn-primary:hover { background: #ccc; }
 .btn-ghost { 
@@ -228,6 +246,32 @@ body {
 .skeleton-card { height: 88px; width: 100%; margin-bottom: 16px; border-radius: var(--radius-md); background: #151516; position: relative; overflow: hidden; }
 .skeleton-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); animation: shimmer 1.5s infinite; }
 @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+/* --- Toast Notification --- */
+.toast-container {
+  position: fixed; top: 20px; right: 20px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+}
+.toast {
+  background: var(--card-bg); color: var(--text-main);
+  padding: 14px 20px; border-radius: 12px; border: 1px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  font-family: var(--font-main); font-weight: 600; font-size: 0.95rem;
+  display: flex; align-items: center; gap: 12px;
+  animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.toast.toast-error { border-left: 4px solid #ff6b6b; }
+.toast.toast-success { border-left: 4px solid #00ffaa; }
+.toast i { font-size: 1.1rem; }
+.toast.toast-error i { color: #ff6b6b; }
+.toast.toast-success i { color: #00ffaa; }
+
+.toast.toast-out {
+  animation: toastOut 0.3s ease forwards;
+}
+@keyframes toastIn { 0% { opacity: 0; transform: translateX(100%); } 100% { opacity: 1; transform: translateX(0); } }
+@keyframes toastOut { 0% { opacity: 1; transform: translateX(0); } 100% { opacity: 0; transform: translateX(100%); } }
+
 
 /* =========================================
    3. RESPONSIVE FIXES (360px)

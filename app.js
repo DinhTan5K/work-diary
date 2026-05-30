@@ -26,7 +26,22 @@ function animateValue(elementId, start, end, duration, formatter) {
   };
   window.requestAnimationFrame(step);
 }
-// ------------------------
+
+// --- TOAST NOTIFICATION ---
+function showToast(msg, type = "error") {
+  const container = document.getElementById("toastContainer");
+  if(!container) return;
+  const icon = type === "error" ? "fa-circle-exclamation" : "fa-circle-check";
+  const div = document.createElement("div");
+  div.className = `toast toast-${type}`;
+  div.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`;
+  container.appendChild(div);
+  setTimeout(() => {
+    div.classList.add("toast-out");
+    setTimeout(() => div.remove(), 300);
+  }, 3000);
+}
+// --------------------------
 
 const updatePrivacyIcon = () => {
   if (btnPrivacy) {
@@ -60,23 +75,66 @@ const $ = q => document.querySelector(q);
 const fmtMoney = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 const getDayName = (d) => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()];
 
-let tempImgFile = null;
-
 let selectedShift = null;
-
 let customMode = false;
 
-document.addEventListener("click", (e) => {
+// --- DYNAMIC SHIFTS ---
+const DEFAULT_SHIFTS = [
+  { start: "07:30", end: "12:30" },
+  { start: "07:30", end: "15:30" },
+  { start: "12:30", end: "17:30" },
+  { start: "14:30", end: "22:30" },
+  { start: "15:30", end: "22:30" },
+  { start: "17:30", end: "22:30" },
+  { start: "18:30", end: "22:30" }
+];
+let savedShifts = JSON.parse(localStorage.getItem('preset_shifts')) || DEFAULT_SHIFTS;
 
-  if (!e.target.classList.contains("shift-btn")) return;
+function renderShifts() {
+  const grid = $("#shiftGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  savedShifts.forEach((s, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "shift-btn";
+    btn.dataset.start = s.start;
+    btn.dataset.end = s.end;
+    btn.innerHTML = `${s.start} - ${s.end} <button class="btn-delete-shift" onclick="deleteShiftPreset(event, ${idx})"><i class="fa-solid fa-xmark"></i></button>`;
+    grid.appendChild(btn);
+  });
+
+  const customBtn = document.createElement("button");
+  customBtn.type = "button";
+  customBtn.className = "shift-btn";
+  customBtn.dataset.custom = "true";
+  customBtn.innerHTML = "➕ Ca khác";
+  grid.appendChild(customBtn);
+}
+
+window.deleteShiftPreset = (e, idx) => {
+  e.stopPropagation();
+  if(confirm("Bạn có chắc muốn xóa ca mẫu này?")) {
+    savedShifts.splice(idx, 1);
+    localStorage.setItem('preset_shifts', JSON.stringify(savedShifts));
+    renderShifts();
+    showToast("Đã xóa ca mẫu", "success");
+  }
+};
+
+renderShifts(); // Gọi ngay khi load trang
+// ----------------------
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".shift-btn");
+  if (!btn) return;
 
   document
     .querySelectorAll(".shift-btn")
-    .forEach(btn => btn.classList.remove("active"));
+    .forEach(b => b.classList.remove("active"));
 
-  e.target.classList.add("active");
+  btn.classList.add("active");
 
-  if (e.target.dataset.custom) {
+  if (btn.dataset.custom) {
 
     customMode = true;
 
@@ -92,8 +150,8 @@ document.addEventListener("click", (e) => {
   $("#customShift").style.display = "none";
 
   selectedShift = {
-    start: e.target.dataset.start,
-    end: e.target.dataset.end
+    start: btn.dataset.start,
+    end: btn.dataset.end
   };
 });
 
@@ -114,26 +172,22 @@ async function upload(file) {
 const toggleModal = (show) => $("#logModal").classList.toggle("hidden", !show);
 
 $("#fab").onclick = () => {
-
   selectedShift = null;
   customMode = false;
 
   $("#customShift").style.display = "none";
   $("#customStart").value = "";
   $("#customEnd").value = "";
+  
+  const chk = $("#chkSavePreset");
+  if(chk) chk.checked = false;
 
-  document
-    .querySelectorAll(".shift-btn")
-    .forEach(btn => btn.classList.remove("active"));
+  renderShifts(); // Tự xóa các class active cũ
 
   $("#workDate").value =
     new Date().toISOString().split("T")[0];
 
   $("#inpNote").value = "";
-
-  tempImgFile = null;
-
-  $("#imgName").innerText = "";
 
   toggleModal(true);
 };
@@ -141,32 +195,37 @@ $("#fab").onclick = () => {
 $("#btnCancel").onclick = () => toggleModal(false);
 $("#btnCloseTop").onclick = () => toggleModal(false);
 
-$("#btnPickImg").onclick = () => {
-  const i = document.createElement("input"); i.type="file"; i.accept="image/*";
-  i.onchange = () => { if(i.files[0]) { tempImgFile=i.files[0]; $("#imgName").innerText = "File: " + i.files[0].name; }};
-  i.click();
-};
-
 $("#btnSave").onclick = async () => {
   if (customMode) {
     const cS = $("#customStart").value;
     const cE = $("#customEnd").value;
     if (!cS || !cE) {
-      alert("Nhập đủ giờ bắt đầu và kết thúc bro");
+      showToast("Nhập đủ giờ bắt đầu và kết thúc bro", "error");
       return;
     }
     selectedShift = { start: cS, end: cE };
+    
+    // Lưu ca mẫu nếu được tick
+    const chk = $("#chkSavePreset");
+    if (chk && chk.checked) {
+      const exists = savedShifts.some(s => s.start === cS && s.end === cE);
+      if(!exists) {
+        savedShifts.push({ start: cS, end: cE });
+        savedShifts.sort((a,b) => a.start.localeCompare(b.start));
+        localStorage.setItem('preset_shifts', JSON.stringify(savedShifts));
+      }
+    }
   }
 
   if (!selectedShift) {
-    alert("Chọn ca trước bro");
+    showToast("Chọn ca trước bro", "error");
     return;
   }
 
   const workDate = $("#workDate").value;
 
   if (!workDate) {
-    alert("Chọn ngày trước bro");
+    showToast("Chọn ngày trước bro", "error");
     return;
   }
 
@@ -181,11 +240,11 @@ $("#btnSave").onclick = async () => {
   $("#btnSave").innerText = "Đang lưu..."; $("#btnSave").disabled = true;
   const dur = end - start;
   const wage = Math.round(USER_WAGE * (dur / 3600000));
-  const img = await upload(tempImgFile);
 
-  await addDoc(COL, { start, end, duration: dur, wageRate: USER_WAGE, totalMoney: wage, note: $("#inpNote").value, image: img });
+  await addDoc(COL, { start, end, duration: dur, wageRate: USER_WAGE, totalMoney: wage, note: $("#inpNote").value });
 
   $("#btnSave").innerText = "Lưu lại"; $("#btnSave").disabled = false;
+  showToast("Lưu ca làm thành công!", "success");
   toggleModal(false); render();
 };
 
@@ -283,7 +342,18 @@ async function render() {
       circle.style.transition = "stroke-dashoffset 1s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
       const p = Math.min(totalHours/TARGET_HOURS, 1);
       circle.style.strokeDashoffset = 213 - (213 * p); 
-      if(p>=1) circle.style.stroke = "#4ade80";
+      if(p>=1) {
+        circle.style.stroke = "#00ffaa";
+        if(currentMonthGroup && localStorage.getItem('confetti_' + currentMonthGroup) !== 'true') {
+           if(typeof confetti === 'function') {
+             confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 9999, colors: ['#bc13fe', '#00ffaa', '#ffffff'] });
+             localStorage.setItem('confetti_' + currentMonthGroup, 'true');
+             setTimeout(() => showToast("Chúc mừng bro đã hoàn thành mục tiêu tháng!", "success"), 1000);
+           }
+        }
+      } else {
+        circle.style.stroke = "#00ffaa"; // Màu chuẩn
+      }
     }, 50);
   }
 }

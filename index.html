@@ -11,6 +11,7 @@
   
   <link rel="stylesheet" href="style.css">
   <link rel="shortcut icon" href="logo.png" type="image/x-icon">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 
 <body>
@@ -92,45 +93,8 @@
 
       <div class="field-group full">
 
-  <label>Chọn ca làm</label>
-
-  <div class="shift-grid">
-
-    <button class="shift-btn" data-start="07:30" data-end="12:30">
-      7:30 - 12:30
-    </button>
-
-    <button class="shift-btn" data-start="07:30" data-end="15:30">
-      7:30 - 15:30
-    </button>
-
-    <button class="shift-btn" data-start="12:30" data-end="17:30">
-      12:30 - 17:30
-    </button>
-
-    <button class="shift-btn" data-start="14:30" data-end="22:30">
-      14:30 - 22:30
-    </button>
-
-    <button class="shift-btn" data-start="15:30" data-end="22:30">
-      15:30 - 22:30
-    </button>
-
-    <button class="shift-btn" data-start="17:30" data-end="22:30">
-      17:30 - 22:30
-    </button>
-
-    <button class="shift-btn" data-start="18:30" data-end="22:30">
-      18:30 - 22:30
-    </button>
-
-    <button
-  type="button"
-  class="shift-btn"
-  data-custom="true">
-  ➕ Ca khác
-</button>
-
+  <div class="shift-grid" id="shiftGrid">
+    <!-- Nút ca làm sẽ được render bằng JS -->
   </div>
 
   <div id="customShift" style="display:none; margin-top:15px;">
@@ -144,17 +108,17 @@
     <label>Kết thúc</label>
     <input type="time" id="customEnd">
   </div>
+  
+  <div class="field-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
+    <input type="checkbox" id="chkSavePreset" style="width: auto; margin: 0; padding: 0;">
+    <label for="chkSavePreset" style="margin: 0; text-transform: none; font-size: 0.85rem; color: var(--accent);">Ghi nhớ ca này làm mẫu</label>
+  </div>
 
 </div>
 
 </div>
       <div class="field-group full">
         <label>Ghi chú</label> <input type="text" id="inpNote" placeholder="Tên công việc...">
-      </div>
-      <div class="field-group full">
-        <label>Hình ảnh</label>
-        <button id="btnPickImg" class="btn-upload"><i class="fa-solid fa-cloud-arrow-up"></i> Chọn ảnh</button>
-        <div id="imgName" class="file-status"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -163,6 +127,8 @@
     </div>
   </div>
 </div>
+
+<div id="toastContainer" class="toast-container"></div>
 
 <script type="module" src="app.js"></script>
 </body>
