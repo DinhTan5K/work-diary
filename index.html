@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>KAITO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#0f0c29">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="logo.png" type="image/x-icon">
+</head>
+
+<body>
+
+<div class="app-container">
+  
+  <header class="header-panel">
+    <div class="brand">
+      <img src="logo.png" alt="Logo" class="logo-img" style="width: 50px;">
+      <div class="logo-text" id="logoTxt">KAITO</div>
+    </div>
+    <div class="header-actions">
+      <button id="btnSettings" class="btn-icon"><i class="fa-solid fa-sliders"></i></button>
+      <button id="btnExport" class="btn-icon"><i class="fa-solid fa-file-csv"></i></button>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <div class="stat-card flex-row">
+      <div class="progress-wrapper">
+        <svg class="progress-ring" width="80" height="80">
+          <circle class="ring-bg" stroke-width="6" fill="transparent" r="34" cx="40" cy="40"></circle>
+          <circle class="ring-val" stroke-width="6" fill="transparent" r="34" cx="40" cy="40" id="progressCircle"></circle>
+        </svg>
+        <div class="ring-text">
+          <span id="monthHours">0</span>
+          <small>HRS</small>
+        </div>
+      </div>
+      <div class="stat-info right">
+        <span class="label"> ---- DINHTAN ----</span>
+        <span class="sub-text">dinhtan</span>
+      </div>
+    </div>
+
+    <div class="stat-card highlight-border">
+      <div class="icon-box gold"><i class="fa-solid fa-coins"></i></div>
+      <div class="stat-info">
+        <div class="label-row">
+           <span class="label">Thu nhập ước tính</span>
+           <button id="btnTogglePrivacy" class="btn-eye" title="Ẩn/Hiện số tiền">
+             <i class="fa-solid fa-eye-slash"></i>
+           </button>
+        </div>
+        
+        <span class="value money-text" id="monthMoney">******</span>
+        <span class="sub-text" id="totalMoney">Tổng: ******</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="timeline-header">
+    <h3 id="greetingTxt">Nhật ký hoạt động</h3>
+  </div>
+  
+  <main id="timeline" class="timeline-list">
+    <div id="skeletonLoader">
+       <div class="skeleton-card"></div>
+       <div class="skeleton-card"></div>
+    </div>
+  </main>
+
+  <button id="fab" class="fab-main"><i class="fa-solid fa-plus"></i></button>
+
+</div>
+
+<div id="logModal" class="modal-backdrop hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Ca làm việc mới</h3>
+      <button id="btnCloseTop" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+
+        <div class="field-group full">
+    <label>Ngày làm</label>
+    <input type="date" id="workDate">
+  </div>
+
+      <div class="field-group full">
+
+  <label>Chọn ca làm</label>
+
+  <div class="shift-grid">
+
+    <button class="shift-btn" data-start="07:30" data-end="12:30">
+      7:30 - 12:30
+    </button>
+
+    <button class="shift-btn" data-start="07:30" data-end="15:30">
+      7:30 - 15:30
+    </button>
+
+    <button class="shift-btn" data-start="12:30" data-end="17:30">
+      12:30 - 17:30
+    </button>
+
+    <button class="shift-btn" data-start="14:30" data-end="22:30">
+      14:30 - 22:30
+    </button>
+
+    <button class="shift-btn" data-start="15:30" data-end="22:30">
+      15:30 - 22:30
+    </button>
+
+    <button class="shift-btn" data-start="17:30" data-end="22:30">
+      17:30 - 22:30
+    </button>
+
+    <button class="shift-btn" data-start="18:30" data-end="22:30">
+      18:30 - 22:30
+    </button>
+
+    <button
+  type="button"
+  class="shift-btn"
+  data-custom="true">
+  ➕ Ca khác
+</button>
+
+  </div>
+
+  <div id="customShift" style="display:none; margin-top:15px;">
+
+  <div class="field-group">
+    <label>Bắt đầu</label>
+    <input type="time" id="customStart">
+  </div>
+
+  <div class="field-group">
+    <label>Kết thúc</label>
+    <input type="time" id="customEnd">
+  </div>
+
+</div>
+
+</div>
+      <div class="field-group full">
+        <label>Ghi chú</label> <input type="text" id="inpNote" placeholder="Tên công việc...">
+      </div>
+      <div class="field-group full">
+        <label>Hình ảnh</label>
+        <button id="btnPickImg" class="btn-upload"><i class="fa-solid fa-cloud-arrow-up"></i> Chọn ảnh</button>
+        <div id="imgName" class="file-status"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="btnCancel" class="btn-ghost">Hủy</button>
+      <button id="btnSave" class="btn-primary">Lưu lại</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
