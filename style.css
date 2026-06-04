@@ -65,6 +65,23 @@ body {
 }
 .btn-icon:hover { background: #2c2c2e; transform: scale(1.05); }
 
+/* --- Month Selector --- */
+.month-selector {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--card-bg); padding: 12px 20px; border-radius: 100px;
+  margin-bottom: 24px;
+}
+.month-selector h3 {
+  margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-main);
+  letter-spacing: -0.5px;
+}
+.btn-icon-small {
+  width: 36px; height: 36px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,0.05); color: var(--text-main); cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.btn-icon-small:hover { background: #2c2c2e; transform: scale(1.1); }
+
 /* --- Stats Grid (Bento Boxes) --- */
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
 .stat-card {

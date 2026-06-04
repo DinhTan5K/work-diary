@@ -78,6 +78,9 @@ const getDayName = (d) => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()]
 let selectedShift = null;
 let customMode = false;
 
+let viewMonth = new Date().getMonth();
+let viewYear = new Date().getFullYear();
+
 // --- DYNAMIC SHIFTS ---
 const DEFAULT_SHIFTS = [
   { start: "07:30", end: "12:30" },
@@ -259,67 +262,71 @@ async function render() {
 
   tl.innerHTML = ""; 
   let mHours = 0, mMoney = 0, totalMoneyAll = 0;
-  const now = new Date();
-  let currentMonthGroup = null;
+  
+  logs.forEach(l => { totalMoneyAll += l.totalMoney || 0; });
 
-  logs.forEach((l, idx) => {
-    totalMoneyAll += l.totalMoney || 0;
+  const filteredLogs = logs.filter(l => {
     const d = new Date(l.start);
-    if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-      mHours += (l.duration || 0); mMoney += (l.totalMoney || 0);
-    }
-
-    const monthKey = `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`;
-    if (monthKey !== currentMonthGroup) {
-      currentMonthGroup = monthKey;
-      const header = document.createElement("div"); header.className = "timeline-header";
-      header.innerHTML = `<h3 style="margin:15px 0 10px 0; font-size:0.9rem; opacity:0.7">${monthKey}</h3>`;
-      tl.appendChild(header);
-    }
-
-    const wk = getDayName(d);
-    const day = d.getDate();
-    const sT = new Date(l.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
-    const eT = new Date(l.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
-    const h = (l.duration/3600000).toFixed(1);
-    const safeNote = (l.note || "").replace(/'/g, "\\'");
-    
-    // BADGES Logic
-    let badges = '';
-    if(d.getDay()===0||d.getDay()===6) badges += `<span class="badge-tag tag-weekend">WEEKEND</span>`;
-
-    const div = document.createElement("div");
-    div.className = "work-card";
-    div.style.animationDelay = `${idx * 0.05}s`;
-    
-    div.innerHTML = `
-      <div class="card-date">
-        <span class="d-weekday">${wk}</span>
-        <span class="d-day">${day}</span>
-      </div>
-      <div class="card-content">
-        <div class="row-top">
-          <span class="time-range">${sT} - ${eT}</span>
-          <span class="dur-tag">${h}h</span>
-          ${badges}
-        </div>
-        <div class="row-btm">
-          <div class="note-text">
-            ${l.note ? `<i class="fa-solid fa-note-sticky"></i> ${l.note}` : '...'}
-          </div>
-          ${l.image ? `<a href="${l.image}" target="_blank" style="color:var(--primary)"><i class="fa-solid fa-image"></i></a>` : ''}
-        </div>
-      </div>
-      <div class="card-actions">
-        <div class="wage-display">${fmtMoney(l.totalMoney)}</div>
-        <div class="act-btns">
-          <button class="btn-mini" onclick="updateNote('${l.id}', '${safeNote}')"><i class="fa-solid fa-pen"></i></button>
-          <button class="btn-mini del" onclick="del('${l.id}')"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      </div>
-    `;
-    tl.appendChild(div);
+    return d.getMonth() === viewMonth && d.getFullYear() === viewYear;
   });
+
+  const monthKey = `Tháng ${viewMonth + 1}/${viewYear}`;
+  $("#lblCurrentMonth").innerText = monthKey;
+
+  if (filteredLogs.length === 0) {
+    tl.innerHTML = `<div style="text-align:center; padding: 40px 20px; color: var(--text-muted);">Không có ca làm nào trong ${monthKey}.</div>`;
+  } else {
+    const header = document.createElement("div"); header.className = "timeline-header";
+    header.innerHTML = `<h3 style="margin:15px 0 10px 0; font-size:0.9rem; opacity:0.7">Nhật ký ${monthKey}</h3>`;
+    tl.appendChild(header);
+
+    filteredLogs.forEach((l, idx) => {
+      mHours += (l.duration || 0); mMoney += (l.totalMoney || 0);
+      const d = new Date(l.start);
+      const wk = getDayName(d);
+      const day = d.getDate();
+      const sT = new Date(l.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
+      const eT = new Date(l.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
+      const h = (l.duration/3600000).toFixed(1);
+      const safeNote = (l.note || "").replace(/'/g, "\\'");
+      
+      // BADGES Logic
+      let badges = '';
+      if(d.getDay()===0||d.getDay()===6) badges += `<span class="badge-tag tag-weekend">WEEKEND</span>`;
+
+      const div = document.createElement("div");
+      div.className = "work-card";
+      div.style.animationDelay = `${idx * 0.05}s`;
+      
+      div.innerHTML = `
+        <div class="card-date">
+          <span class="d-weekday">${wk}</span>
+          <span class="d-day">${day}</span>
+        </div>
+        <div class="card-content">
+          <div class="row-top">
+            <span class="time-range">${sT} - ${eT}</span>
+            <span class="dur-tag">${h}h</span>
+            ${badges}
+          </div>
+          <div class="row-btm">
+            <div class="note-text">
+              ${l.note ? `<i class="fa-solid fa-note-sticky"></i> ${l.note}` : '...'}
+            </div>
+            ${l.image ? `<a href="${l.image}" target="_blank" style="color:var(--primary)"><i class="fa-solid fa-image"></i></a>` : ''}
+          </div>
+        </div>
+        <div class="card-actions">
+          <div class="wage-display">${fmtMoney(l.totalMoney)}</div>
+          <div class="act-btns">
+            <button class="btn-mini" onclick="updateNote('${l.id}', '${safeNote}')"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn-mini del" onclick="del('${l.id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      `;
+      tl.appendChild(div);
+    });
+  }
 
   const totalHours = (mHours / 3600000);
   animateValue("monthHours", 0, totalHours, 1000, (v) => v.toFixed(1));
@@ -344,10 +351,10 @@ async function render() {
       circle.style.strokeDashoffset = 213 - (213 * p); 
       if(p>=1) {
         circle.style.stroke = "#00ffaa";
-        if(currentMonthGroup && localStorage.getItem('confetti_' + currentMonthGroup) !== 'true') {
+        if(monthKey && localStorage.getItem('confetti_' + monthKey) !== 'true') {
            if(typeof confetti === 'function') {
              confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 9999, colors: ['#bc13fe', '#00ffaa', '#ffffff'] });
-             localStorage.setItem('confetti_' + currentMonthGroup, 'true');
+             localStorage.setItem('confetti_' + monthKey, 'true');
              setTimeout(() => showToast("Chúc mừng bro đã hoàn thành mục tiêu tháng!", "success"), 1000);
            }
         }
@@ -361,6 +368,19 @@ async function render() {
 window.updateNote = async (id, old) => { const n = prompt("Sửa ghi chú:", old); if(n!==null) { await updateDoc(doc(db,"work_logs",id),{note:n}); render(); }};
 window.del = async (id) => { if(confirm("Xóa ca làm này?")) { await deleteDoc(doc(db,"work_logs",id)); render(); }};
 $("#btnSettings").onclick = () => { const w = prompt("Lương/giờ:", USER_WAGE); if(w) { USER_WAGE=parseInt(w); localStorage.setItem('shift_wage',USER_WAGE); render(); }};
+
+$("#btnPrevMonth").onclick = () => {
+  viewMonth--;
+  if(viewMonth < 0) { viewMonth = 11; viewYear--; }
+  render();
+};
+
+$("#btnNextMonth").onclick = () => {
+  viewMonth++;
+  if(viewMonth > 11) { viewMonth = 0; viewYear++; }
+  render();
+};
+
 $("#btnExport").onclick = async () => {
   const snap = await getDocs(COL);
   const logs = snap.docs.map(d => d.data()).sort((a,b) => b.start - a.start);
