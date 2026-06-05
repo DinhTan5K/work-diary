@@ -65,6 +65,23 @@ body {
 }
 .btn-icon:hover { background: #2c2c2e; transform: scale(1.05); }
 
+/* --- Tabs Navigation --- */
+.tabs-nav {
+  display: flex; gap: 10px; margin-bottom: 24px;
+  background: var(--card-bg); padding: 8px; border-radius: 100px;
+}
+.tab-btn {
+  flex: 1; background: transparent; border: none; padding: 14px;
+  color: var(--text-muted); font-size: 1.05rem; font-weight: 700;
+  border-radius: 100px; cursor: pointer; transition: 0.3s;
+}
+.tab-btn.active {
+  background: #3a3a3c; color: var(--text-main);
+}
+.tab-content { display: none; animation: fadeIn 0.3s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+
 /* --- Month Selector --- */
 .month-selector {
   display: flex; align-items: center; justify-content: space-between;
@@ -136,9 +153,6 @@ body {
 }
 .btn-eye:hover { transform: scale(1.1); }
 
-/* --- Timeline / Logs --- */
-.timeline-header h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 16px; padding-left: 8px; letter-spacing: -0.5px; color: var(--text-main); }
-
 .work-card {
   background: var(--card-bg); border-radius: var(--radius-md);
   padding: 16px 20px; margin-bottom: 16px; 
@@ -187,6 +201,16 @@ body {
 .btn-mini:hover { background: #2c2c2e; color: var(--text-main); }
 .btn-mini.del { color: #ff6b6b; background: rgba(255, 92, 92, 0.1); }
 .btn-mini.del:hover { background: rgba(255, 92, 92, 0.2); }
+
+/* Schedule Card specific */
+.schedule-header { margin-bottom: 20px; }
+.schedule-header h3 { margin: 0 0 4px 0; font-size: 1.4rem; font-weight: 800; }
+.btn-checkin {
+  padding: 10px 16px; border-radius: 100px; border: none;
+  background: #00ffaa; color: #000; font-weight: 800; font-size: 0.9rem;
+  cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+}
+.btn-checkin:hover { transform: scale(1.05); }
 
 /* --- FAB --- */
 .fab-main {
@@ -318,4 +342,11 @@ body {
   /* Giữ 2 cột cho shift-grid để modal không bị quá dài */
   .shift-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .shift-btn { padding: 12px; font-size: 0.9rem; }
+  
+  /* Tabs & Schedule Mobile Fixes */
+  .tabs-nav { padding: 6px; gap: 6px; }
+  .tab-btn { padding: 10px; font-size: 0.95rem; }
+  .schedule-header h3 { font-size: 1.2rem; }
+  .btn-checkin { padding: 10px 12px !important; font-size: 0.85rem; }
+  .btn-mini.del { width: 34px !important; height: 34px !important; }
 }

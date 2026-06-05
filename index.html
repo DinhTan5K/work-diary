@@ -29,7 +29,13 @@
     </div>
   </header>
 
-  <div class="month-selector">
+  <div class="tabs-nav">
+    <button class="tab-btn active" data-target="tab-diary"><i class="fa-solid fa-book"></i> Nhật Ký</button>
+    <button class="tab-btn" data-target="tab-schedule"><i class="fa-solid fa-calendar-days"></i> Lịch Làm</button>
+  </div>
+
+  <div id="tab-diary" class="tab-content active">
+    <div class="month-selector">
     <button id="btnPrevMonth" class="btn-icon-small"><i class="fa-solid fa-chevron-left"></i></button>
     <h3 id="lblCurrentMonth">Tháng 6/2026</h3>
     <button id="btnNextMonth" class="btn-icon-small"><i class="fa-solid fa-chevron-right"></i></button>
@@ -68,26 +74,36 @@
       </div>
     </div>
   </section>
-
-  <div class="timeline-header">
-    <h3 id="greetingTxt">Nhật ký hoạt động</h3>
-  </div>
   
   <main id="timeline" class="timeline-list">
-    <div id="skeletonLoader">
-       <div class="skeleton-card"></div>
-       <div class="skeleton-card"></div>
-    </div>
-  </main>
+      <div id="skeletonLoader">
+         <div class="skeleton-card"></div>
+         <div class="skeleton-card"></div>
+      </div>
+    </main>
 
-  <button id="fab" class="fab-main"><i class="fa-solid fa-plus"></i></button>
+    <button id="fab" class="fab-main"><i class="fa-solid fa-plus"></i></button>
+  </div>
+
+  <div id="tab-schedule" class="tab-content">
+    <div class="schedule-header">
+      <h3>Lịch trình sắp tới</h3>
+      <p style="color:var(--text-muted); font-size: 0.9rem;">Những ca làm chưa hoàn thành</p>
+    </div>
+    
+    <main id="schedule-timeline" class="timeline-list">
+      <!-- Schedule items will be rendered here -->
+    </main>
+
+    <button id="fab-schedule" class="fab-main"><i class="fa-solid fa-plus"></i></button>
+  </div>
 
 </div>
 
 <div id="logModal" class="modal-backdrop hidden">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Ca làm việc mới</h3>
+      <h3 id="modalTitle">Ca làm việc mới</h3>
       <button id="btnCloseTop" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">

@@ -66,6 +66,7 @@ if (btnPrivacy) {
 
 
 const COL = collection(db, "work_logs");
+const SCH_COL = collection(db, "work_schedule");
 let USER_WAGE = parseInt(localStorage.getItem('shift_wage')) || 20000;
 const TARGET_HOURS = 200; 
 const CLOUD_NAME = "do48qpmut"; 
@@ -77,6 +78,7 @@ const getDayName = (d) => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()]
 
 let selectedShift = null;
 let customMode = false;
+let isLoggingSchedule = false;
 
 let viewMonth = new Date().getMonth();
 let viewYear = new Date().getFullYear();
@@ -171,12 +173,23 @@ async function upload(file) {
   } catch (e) { return null; }
 }
 
-// --- MODAL ---
+// --- TABS & MODALS ---
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    btn.classList.add("active");
+    const target = btn.getAttribute("data-target");
+    document.getElementById(target).classList.add("active");
+  };
+});
+
 const toggleModal = (show) => $("#logModal").classList.toggle("hidden", !show);
 
 $("#fab").onclick = () => {
-  selectedShift = null;
-  customMode = false;
+  isLoggingSchedule = false;
+  $("#modalTitle").innerText = "Ca làm việc mới";
+  $("#inpNote").closest('.field-group').style.display = "block";
 
   $("#customShift").style.display = "none";
   $("#customStart").value = "";
@@ -186,6 +199,28 @@ $("#fab").onclick = () => {
   if(chk) chk.checked = false;
 
   renderShifts(); // Tự xóa các class active cũ
+
+  $("#workDate").value =
+    new Date().toISOString().split("T")[0];
+
+  $("#inpNote").value = "";
+
+  toggleModal(true);
+};
+
+$("#fab-schedule").onclick = () => {
+  isLoggingSchedule = true;
+  $("#modalTitle").innerText = "Thêm lịch làm việc";
+  $("#inpNote").closest('.field-group').style.display = "none";
+
+  $("#customShift").style.display = "none";
+  $("#customStart").value = "";
+  $("#customEnd").value = "";
+  
+  const chk = $("#chkSavePreset");
+  if(chk) chk.checked = false;
+
+  renderShifts(); 
 
   $("#workDate").value =
     new Date().toISOString().split("T")[0];
@@ -235,20 +270,84 @@ $("#btnSave").onclick = async () => {
   let start = new Date(`${workDate}T${selectedShift.start}`).getTime();
   let end = new Date(`${workDate}T${selectedShift.end}`).getTime();
 
-  if (start >= end) { 
-    // Cộng thêm 1 ngày nếu qua đêm
-    end += 86400000; 
-  }
+  if (start >= end) { end += 86400000; }
   
   $("#btnSave").innerText = "Đang lưu..."; $("#btnSave").disabled = true;
   const dur = end - start;
-  const wage = Math.round(USER_WAGE * (dur / 3600000));
 
-  await addDoc(COL, { start, end, duration: dur, wageRate: USER_WAGE, totalMoney: wage, note: $("#inpNote").value });
+  if (isLoggingSchedule) {
+    await addDoc(SCH_COL, { start, end, duration: dur });
+    showToast("Thêm lịch thành công!", "success");
+  } else {
+    const wage = Math.round(USER_WAGE * (dur / 3600000));
+    await addDoc(COL, { start, end, duration: dur, wageRate: USER_WAGE, totalMoney: wage, note: $("#inpNote").value });
+    showToast("Lưu ca làm thành công!", "success");
+  }
 
   $("#btnSave").innerText = "Lưu lại"; $("#btnSave").disabled = false;
-  showToast("Lưu ca làm thành công!", "success");
-  toggleModal(false); render();
+  toggleModal(false); 
+  if (isLoggingSchedule) renderSchedule(); else render();
+};
+
+// --- RENDER SCHEDULE ---
+async function renderSchedule() {
+  const tl = $("#schedule-timeline");
+  tl.innerHTML = `<div id="skeletonLoader"><div class="skeleton-card"></div></div>`;
+  const snap = await getDocs(SCH_COL);
+  const schLogs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.start - b.start);
+  
+  tl.innerHTML = "";
+  if (schLogs.length === 0) {
+    tl.innerHTML = `<div style="text-align:center; padding: 40px 20px; color: var(--text-muted);">Cụ chưa có lịch trình nào sắp tới.</div>`;
+    return;
+  }
+
+  schLogs.forEach((l, idx) => {
+    const d = new Date(l.start);
+    const wk = getDayName(d);
+    const day = d.getDate();
+    const month = d.getMonth() + 1;
+    const sT = new Date(l.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
+    const eT = new Date(l.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
+    const h = (l.duration/3600000).toFixed(1);
+
+    const div = document.createElement("div");
+    div.className = "work-card";
+    div.style.animationDelay = `${idx * 0.05}s`;
+    
+    div.innerHTML = `
+      <div class="card-date">
+        <span class="d-weekday">${wk}</span>
+        <span class="d-day">${day}/${month}</span>
+      </div>
+      <div class="card-content" style="justify-content: center;">
+        <div class="row-top">
+          <span class="time-range">${sT} - ${eT}</span>
+          <span class="dur-tag">${h}h</span>
+        </div>
+      </div>
+      <div class="card-actions" style="justify-content: center;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="btn-mini del" onclick="delSchedule('${l.id}')" title="Xóa lịch này" style="width: 40px; height: 40px;"><i class="fa-solid fa-trash"></i></button>
+          <button class="btn-checkin" onclick="checkIn('${l.id}', ${l.start}, ${l.end}, ${l.duration})" style="padding: 12px 20px;">
+            <i class="fa-solid fa-check"></i> Chấm công
+          </button>
+        </div>
+      </div>
+    `;
+    tl.appendChild(div);
+  });
+}
+
+window.checkIn = async (id, start, end, duration) => {
+  if(!confirm("Đã hoàn thành ca này và ném vào Nhật Ký Lương?")) return;
+  const wage = Math.round(USER_WAGE * (duration / 3600000));
+  await addDoc(COL, { start, end, duration: duration, wageRate: USER_WAGE, totalMoney: wage, note: "" });
+  await deleteDoc(doc(db,"work_schedule",id));
+  showToast("Chấm công thành công! Tiền đã về túi.", "success");
+  renderSchedule();
+  render();
+
 };
 
 // --- RENDER ---
@@ -261,9 +360,9 @@ async function render() {
   const logs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.start - a.start);
 
   tl.innerHTML = ""; 
-  let mHours = 0, mMoney = 0, totalMoneyAll = 0;
+  let mHours = 0, mMoney = 0, totalDurationAll = 0, totalMoneyAll = 0;
   
-  logs.forEach(l => { totalMoneyAll += l.totalMoney || 0; });
+  logs.forEach(l => { totalDurationAll += l.duration || 0; });
 
   const filteredLogs = logs.filter(l => {
     const d = new Date(l.start);
@@ -281,7 +380,7 @@ async function render() {
     tl.appendChild(header);
 
     filteredLogs.forEach((l, idx) => {
-      mHours += (l.duration || 0); mMoney += (l.totalMoney || 0);
+      mHours += (l.duration || 0);
       const d = new Date(l.start);
       const wk = getDayName(d);
       const day = d.getDate();
@@ -317,7 +416,7 @@ async function render() {
           </div>
         </div>
         <div class="card-actions">
-          <div class="wage-display">${fmtMoney(l.totalMoney)}</div>
+          <div class="wage-display">${fmtMoney(Math.round((l.duration/3600000) * USER_WAGE))}</div>
           <div class="act-btns">
             <button class="btn-mini" onclick="updateNote('${l.id}', '${safeNote}')"><i class="fa-solid fa-pen"></i></button>
             <button class="btn-mini del" onclick="del('${l.id}')"><i class="fa-solid fa-trash"></i></button>
@@ -328,7 +427,12 @@ async function render() {
     });
   }
 
-  const totalHours = (mHours / 3600000);
+  const totalHours = parseFloat((mHours / 3600000).toFixed(1));
+  const grandTotalHours = parseFloat((totalDurationAll / 3600000).toFixed(1));
+  
+  mMoney = totalHours * USER_WAGE;
+  totalMoneyAll = grandTotalHours * USER_WAGE;
+
   animateValue("monthHours", 0, totalHours, 1000, (v) => v.toFixed(1));
 
   // LOGIC KIỂM TRA ĐỂ ẨN/HIỆN TIỀN (MỚI)
@@ -366,7 +470,8 @@ async function render() {
 }
 
 window.updateNote = async (id, old) => { const n = prompt("Sửa ghi chú:", old); if(n!==null) { await updateDoc(doc(db,"work_logs",id),{note:n}); render(); }};
-window.del = async (id) => { if(confirm("Xóa ca làm này?")) { await deleteDoc(doc(db,"work_logs",id)); render(); }};
+window.del = async (id) => { if(confirm("Xóa ca làm này khỏi Nhật Ký?")) { await deleteDoc(doc(db,"work_logs",id)); render(); }};
+window.delSchedule = async (id) => { if(confirm("Hủy lịch làm việc này?")) { await deleteDoc(doc(db,"work_schedule",id)); showToast("Đã xóa lịch!", "success"); renderSchedule(); }};
 $("#btnSettings").onclick = () => { const w = prompt("Lương/giờ:", USER_WAGE); if(w) { USER_WAGE=parseInt(w); localStorage.setItem('shift_wage',USER_WAGE); render(); }};
 
 $("#btnPrevMonth").onclick = () => {
@@ -389,9 +494,10 @@ $("#btnExport").onclick = async () => {
     const d = new Date(l.start).toLocaleDateString('vi-VN');
     const st = new Date(l.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
     const et = new Date(l.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
-    const h = (l.duration / 3600000).toFixed(1);
+    const h = parseFloat((l.duration / 3600000).toFixed(1));
     const n = (l.note || "").replace(/,/g, " ");
-    csv += `${d},${st},${et},${h},${l.wageRate},${l.totalMoney},${n}\n`;
+    const money = Math.round(h * USER_WAGE);
+    csv += `${d},${st},${et},${h},${USER_WAGE},${money},${n}\n`;
   });
   const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -402,3 +508,4 @@ $("#btnExport").onclick = async () => {
 };
 
 render();
+renderSchedule();
