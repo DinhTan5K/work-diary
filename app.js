@@ -617,7 +617,14 @@ if (btnLogout) {
   };
 }
 
+let isInitialLoad = true;
 onAuthStateChanged(auth, (user) => {
+  if (isInitialLoad) {
+    const loader = document.getElementById("loadingScreen");
+    if (loader) loader.style.display = "none";
+    isInitialLoad = false;
+  }
+  
   if (user) {
     if (authScreen) authScreen.style.display = "none";
     if (mainApp) mainApp.style.display = "block";

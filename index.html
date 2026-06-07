@@ -16,8 +16,22 @@
 
 <body>
 
+<!-- === LOADING SCREEN === -->
+<div id="loadingScreen" style="display: flex; height: 100vh; width: 100vw; align-items: center; justify-content: center; flex-direction: column;">
+  <img src="logo.png" alt="Logo" class="logo-img" style="width: 80px; height: 80px; border-radius: 20px; animation: pulse 1.5s infinite;">
+  <div style="margin-top: 15px; font-family: var(--font-head); font-weight: 800; font-size: 1.5rem; letter-spacing: 2px;">KAITO</div>
+</div>
+
+<style>
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+</style>
+
 <!-- === AUTH SCREEN === -->
-<div id="authScreen" class="auth-wrapper">
+<div id="authScreen" class="auth-wrapper" style="display: none;">
   <div class="auth-card">
     <div class="brand auth-brand">
       <img src="logo.png" alt="Logo" class="logo-img">
@@ -84,8 +98,8 @@
         </div>
       </div>
       <div class="stat-info right">
-        <span class="label"> ---- <span id="lblUserRole">CHỨC VỤ</span> ----</span>
-        <span class="sub-text" id="lblUserName">Chưa đăng nhập</span>
+        <span class="label"><span id="lblUserRole" class="badge-role">CHỨC VỤ</span></span>
+        <span class="sub-text" id="lblUserName" title="Tên người dùng">Chưa đăng nhập</span>
       </div>
     </div>
 

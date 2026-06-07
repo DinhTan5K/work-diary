@@ -133,7 +133,8 @@ body {
 .ring-text span { font-weight: 800; font-size: 1.2rem; line-height: 1; color: var(--text-main); }
 .ring-text small { font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; font-weight: 700; }
 
-.stat-info.right { align-items: flex-end; text-align: right; }
+.stat-info.right { align-items: flex-end; text-align: right; flex-shrink: 1; min-width: 0; }
+.badge-role { background: rgba(255, 255, 255, 0.1); padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; color: var(--text-muted); display: inline-block; }
 
 /* Card 2: Money (Soft Peach) */
 .stat-card:nth-child(2) { background: var(--bento-2); }
@@ -142,7 +143,7 @@ body {
 .stat-info .label { font-size: 0.85rem; color: #bcaaa4; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 .stat-info .value { font-size: 1.8rem; font-weight: 800; color: #ff9e87; line-height: 1; letter-spacing: -0.5px; margin-bottom: 4px; }
 .money-text { color: #ff9e87; }
-.stat-info .sub-text { font-size: 0.85rem; color: #bcaaa4; font-weight: 600; }
+.stat-info .sub-text { font-size: 0.85rem; color: #bcaaa4; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: inline-block; }
 .icon-box { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; background: rgba(255,255,255,0.05); color: #ff9e87; margin-bottom: 0; }
 
 /* Nút mắt */
@@ -328,15 +329,16 @@ body {
   .stat-info .value { font-size: 1.4rem; }
   .stat-info .label { font-size: 0.75rem; }
   
-  .work-card { padding: 16px 12px; gap: 10px; }
+  .work-card { padding: 14px 10px; gap: 8px; grid-template-columns: auto 1fr auto; }
   
   /* Scale progress ring down without breaking JS math */
   .progress-wrapper { transform: scale(0.85); transform-origin: right center; }
   
-  .card-date { width: 46px; height: 46px; border-radius: 12px; }
+  .card-date { width: 44px; height: 44px; border-radius: 12px; }
   .d-day { font-size: 1.1rem; }
   .time-range { font-size: 0.95rem; }
-  .wage-display { font-size: 1rem; }
+  .wage-display { font-size: 0.95rem; margin-bottom: 4px; }
+  .btn-mini { width: 32px; height: 32px; font-size: 13px; }
   
   .modal-content { padding: 24px 16px; border-radius: 24px 24px 0 0; }
   /* Giữ 2 cột cho shift-grid để modal không bị quá dài */
