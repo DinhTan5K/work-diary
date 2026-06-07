@@ -1,5 +1,6 @@
-import { db } from "./firebase.js"; 
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db, auth } from "./firebase.js"; 
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 
 
@@ -67,7 +68,7 @@ if (btnPrivacy) {
 
 const COL = collection(db, "work_logs");
 const SCH_COL = collection(db, "work_schedule");
-let USER_WAGE = parseInt(localStorage.getItem('shift_wage')) || 20000;
+let USER_WAGE = parseInt(localStorage.getItem('shift_wage')) || 25000;
 const TARGET_HOURS = 200; 
 const CLOUD_NAME = "do48qpmut"; 
 const UPLOAD_PRESET = "fora";
@@ -276,11 +277,11 @@ $("#btnSave").onclick = async () => {
   const dur = end - start;
 
   if (isLoggingSchedule) {
-    await addDoc(SCH_COL, { start, end, duration: dur });
+    await addDoc(SCH_COL, { start, end, duration: dur, uid: auth.currentUser.uid });
     showToast("Thêm lịch thành công!", "success");
   } else {
     const wage = Math.round(USER_WAGE * (dur / 3600000));
-    await addDoc(COL, { start, end, duration: dur, wageRate: USER_WAGE, totalMoney: wage, note: $("#inpNote").value });
+    await addDoc(COL, { start, end, duration: dur, wageRate: USER_WAGE, totalMoney: wage, note: $("#inpNote").value, uid: auth.currentUser.uid });
     showToast("Lưu ca làm thành công!", "success");
   }
 
@@ -293,7 +294,8 @@ $("#btnSave").onclick = async () => {
 async function renderSchedule() {
   const tl = $("#schedule-timeline");
   tl.innerHTML = `<div id="skeletonLoader"><div class="skeleton-card"></div></div>`;
-  const snap = await getDocs(SCH_COL);
+  const q = query(SCH_COL, where("uid", "==", auth.currentUser.uid));
+  const snap = await getDocs(q);
   const schLogs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.start - b.start);
   
   tl.innerHTML = "";
@@ -342,7 +344,7 @@ async function renderSchedule() {
 window.checkIn = async (id, start, end, duration) => {
   if(!confirm("Đã hoàn thành ca này và ném vào Nhật Ký Lương?")) return;
   const wage = Math.round(USER_WAGE * (duration / 3600000));
-  await addDoc(COL, { start, end, duration: duration, wageRate: USER_WAGE, totalMoney: wage, note: "" });
+  await addDoc(COL, { start, end, duration: duration, wageRate: USER_WAGE, totalMoney: wage, note: "", uid: auth.currentUser.uid });
   await deleteDoc(doc(db,"work_schedule",id));
   showToast("Chấm công thành công! Tiền đã về túi.", "success");
   renderSchedule();
@@ -356,7 +358,8 @@ async function render() {
   const skel = $("#skeletonLoader");
   if(!skel || !tl.contains(skel)) tl.innerHTML = `<div id="skeletonLoader"><div class="skeleton-card"></div></div>`;
 
-  const snap = await getDocs(COL);
+  const q = query(COL, where("uid", "==", auth.currentUser.uid));
+  const snap = await getDocs(q);
   const logs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.start - a.start);
 
   tl.innerHTML = ""; 
@@ -487,7 +490,8 @@ $("#btnNextMonth").onclick = () => {
 };
 
 $("#btnExport").onclick = async () => {
-  const snap = await getDocs(COL);
+  const q = query(COL, where("uid", "==", auth.currentUser.uid));
+  const snap = await getDocs(q);
   const logs = snap.docs.map(d => d.data()).sort((a,b) => b.start - a.start);
   let csv = "Ngày,Bắt đầu,Kết thúc,Thời gian (h),Lương/h,Tổng tiền,Ghi chú\n";
   logs.forEach(l => {
@@ -507,5 +511,89 @@ $("#btnExport").onclick = async () => {
   a.click();
 };
 
-render();
-renderSchedule();
+// --- AUTH LOGIC ---
+const authScreen = $("#authScreen");
+const mainApp = $("#mainApp");
+const btnTabLogin = $("#btnTabLogin");
+const btnTabRegister = $("#btnTabRegister");
+const authForm = $("#authForm");
+const btnLogout = $("#btnLogout");
+
+let isRegistering = false;
+
+btnTabLogin.onclick = () => {
+  isRegistering = false;
+  btnTabLogin.classList.add("active");
+  btnTabRegister.classList.remove("active");
+  $("#btnAuthSubmit").innerText = "Đăng Nhập";
+};
+
+btnTabRegister.onclick = () => {
+  isRegistering = true;
+  btnTabRegister.classList.add("active");
+  btnTabLogin.classList.remove("active");
+  $("#btnAuthSubmit").innerText = "Đăng Ký";
+};
+
+authForm.onsubmit = async (e) => {
+  e.preventDefault();
+  const username = $("#authUsername").value.trim().toLowerCase();
+  const password = $("#authPassword").value;
+  
+  if (!username.match(/^[a-z0-9_]+$/)) {
+    showToast("Tên đăng nhập viết liền không dấu, không ký tự đặc biệt nhé bro!", "error");
+    return;
+  }
+  
+  if (password.length < 6) {
+    showToast("Mật khẩu phải có ít nhất 6 ký tự nha bro!", "error");
+    return;
+  }
+
+  const email = `${username}@kaito.app`;
+
+  try {
+    $("#btnAuthSubmit").innerText = "Đang xử lý...";
+    if (isRegistering) {
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCred.user, { displayName: username });
+      showToast("Đăng ký thành công!", "success");
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+      showToast("Đăng nhập thành công!", "success");
+    }
+  } catch (err) {
+    if (err.code === 'auth/email-already-in-use') {
+      showToast("Tên này có người lấy mất rồi!", "error");
+    } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+      showToast("Sai tên hoặc mật khẩu rồi bro!", "error");
+    } else {
+      showToast("Lỗi: " + err.message, "error");
+    }
+    $("#btnAuthSubmit").innerText = isRegistering ? "Đăng Ký" : "Đăng Nhập";
+  }
+};
+
+if (btnLogout) {
+  btnLogout.onclick = async () => {
+    await signOut(auth);
+  };
+}
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    if (authScreen) authScreen.style.display = "none";
+    if (mainApp) mainApp.style.display = "block";
+    const lblUserName = $("#lblUserName");
+    if (lblUserName) lblUserName.innerText = user.displayName || user.email.split('@')[0];
+    const lblUserRole = $("#lblUserRole");
+    if (lblUserRole) lblUserRole.innerText = "KIN";
+    render();
+    renderSchedule();
+  } else {
+    if (authScreen) authScreen.style.display = "flex";
+    if (mainApp) mainApp.style.display = "none";
+    if (authForm) authForm.reset();
+    $("#btnAuthSubmit").innerText = isRegistering ? "Đăng Ký" : "Đăng Nhập";
+  }
+});

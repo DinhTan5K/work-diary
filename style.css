@@ -54,7 +54,7 @@ body {
   border-radius: 100px; /* Pill shape for bento header */
 }
 .brand { display: flex; align-items: center; gap: 10px; }
-.logo-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.logo-img { width: 44px; height: 44px; border-radius: 12px; object-fit: contain; }
 .logo-text { font-family: var(--font-head); font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; }
 
 .header-actions { display: flex; gap: 8px; }
@@ -350,3 +350,36 @@ body {
   .btn-checkin { padding: 10px 12px !important; font-size: 0.85rem; }
   .btn-mini.del { width: 34px !important; height: 34px !important; }
 }
+
+/* =========================================
+   4. AUTHENTICATION UI
+   ========================================= */
+.auth-wrapper {
+  position: fixed; inset: 0; background: var(--bg-color);
+  display: flex; align-items: center; justify-content: center; z-index: 9999;
+  padding: 20px;
+}
+.auth-card {
+  width: 100%; max-width: 400px; background: var(--card-bg);
+  border-radius: var(--radius-lg); padding: 40px 30px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.auth-brand {
+  flex-direction: column; justify-content: center; margin-bottom: 30px;
+}
+.auth-brand .logo-img { width: 80px; height: 80px; border-radius: 20px; margin-bottom: 15px; }
+.auth-brand .logo-text { font-size: 2rem; }
+.auth-tabs {
+  display: flex; gap: 10px; margin-bottom: 24px;
+  background: var(--bg-color); padding: 8px; border-radius: 100px;
+}
+.auth-tab-btn {
+  flex: 1; background: transparent; border: none; padding: 12px;
+  color: var(--text-muted); font-size: 1rem; font-weight: 700;
+  border-radius: 100px; cursor: pointer; transition: 0.3s;
+}
+.auth-tab-btn.active {
+  background: #3a3a3c; color: var(--text-main);
+}
+.auth-form .field-group { margin-bottom: 16px; }
+.auth-form .btn-primary { margin-top: 24px; padding: 16px; }

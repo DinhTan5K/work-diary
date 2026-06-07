@@ -16,16 +16,45 @@
 
 <body>
 
-<div class="app-container">
+<!-- === AUTH SCREEN === -->
+<div id="authScreen" class="auth-wrapper">
+  <div class="auth-card">
+    <div class="brand auth-brand">
+      <img src="logo.png" alt="Logo" class="logo-img">
+      <div class="logo-text">KAITO</div>
+    </div>
+    
+    <div class="auth-tabs">
+      <button id="btnTabLogin" class="auth-tab-btn active">Đăng Nhập</button>
+      <button id="btnTabRegister" class="auth-tab-btn">Đăng Ký</button>
+    </div>
+
+    <form id="authForm" class="auth-form">
+      <div class="field-group full">
+        <label>Tên đăng nhập</label>
+        <input type="text" id="authUsername" placeholder="Ví dụ: dinhtan" required autocomplete="off">
+      </div>
+      <div class="field-group full">
+        <label>Mật khẩu</label>
+        <input type="password" id="authPassword" placeholder="Nhập mật khẩu..." required>
+      </div>
+      
+      <button type="submit" id="btnAuthSubmit" class="btn-primary" style="width: 100%; margin-top: 10px;">Đăng Nhập</button>
+    </form>
+  </div>
+</div>
+
+<div class="app-container" id="mainApp" style="display: none;">
   
   <header class="header-panel">
     <div class="brand">
-      <img src="logo.png" alt="Logo" class="logo-img" style="width: 50px;">
+      <img src="logo.png" alt="Logo" class="logo-img">
       <div class="logo-text" id="logoTxt">KAITO</div>
     </div>
     <div class="header-actions">
       <button id="btnSettings" class="btn-icon"><i class="fa-solid fa-sliders"></i></button>
       <button id="btnExport" class="btn-icon"><i class="fa-solid fa-file-csv"></i></button>
+      <button id="btnLogout" class="btn-icon" style="color: #ff4d4f;"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </header>
 
@@ -54,8 +83,8 @@
         </div>
       </div>
       <div class="stat-info right">
-        <span class="label"> ---- DINHTAN ----</span>
-        <span class="sub-text">dinhtan</span>
+        <span class="label"> ---- <span id="lblUserRole">CHỨC VỤ</span> ----</span>
+        <span class="sub-text" id="lblUserName">Chưa đăng nhập</span>
       </div>
     </div>
 
