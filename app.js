@@ -511,6 +511,43 @@ $("#btnExport").onclick = async () => {
   a.click();
 };
 
+const btnRescue = $("#btnRescue");
+if (btnRescue) {
+  btnRescue.onclick = async () => {
+    const oldUid = prompt("Nhập UID cũ của tài khoản bị mất pass (ví dụ: YpVDNW6...):");
+    if(!oldUid) return;
+    if(!confirm(`Chắc chắn muốn chuyển toàn bộ dữ liệu từ UID [${oldUid}] sang tài khoản hiện tại không?`)) return;
+    try {
+      btnRescue.disabled = true;
+      let count = 0;
+      
+      const snapLogs = await getDocs(COL);
+      for (let d of snapLogs.docs) {
+        if (d.data().uid === oldUid) {
+          await updateDoc(doc(db, "work_logs", d.id), { uid: auth.currentUser.uid });
+          count++;
+        }
+      }
+
+      const snapSch = await getDocs(SCH_COL);
+      for (let d of snapSch.docs) {
+        if (d.data().uid === oldUid) {
+          await updateDoc(doc(db, "work_schedule", d.id), { uid: auth.currentUser.uid });
+          count++;
+        }
+      }
+
+      showToast(`Đã cứu thành công ${count} mục từ UID cũ!`, "success");
+      render();
+      renderSchedule();
+    } catch(e) {
+      showToast("Lỗi: " + e.message, "error");
+    } finally {
+      btnRescue.disabled = false;
+    }
+  };
+}
+
 // --- AUTH LOGIC ---
 const authScreen = $("#authScreen");
 const mainApp = $("#mainApp");
