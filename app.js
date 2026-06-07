@@ -409,9 +409,9 @@ async function render() {
           <div class="row-top">
             <span class="time-range">${sT} - ${eT}</span>
             <span class="dur-tag">${h}h</span>
-            ${badges}
           </div>
           <div class="row-btm">
+            ${badges}
             <div class="note-text">
               ${l.note ? `<i class="fa-solid fa-note-sticky"></i> ${l.note}` : '...'}
             </div>

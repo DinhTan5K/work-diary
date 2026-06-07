@@ -49,15 +49,15 @@ body {
 /* --- Header --- */
 .header-panel {
   display: flex; justify-content: space-between; align-items: center; 
-  padding: 12px 12px 12px 20px; margin-bottom: 24px;
+  padding: 10px; margin-bottom: 24px;
   background: var(--card-bg);
   border-radius: 100px; /* Pill shape for bento header */
 }
 .brand { display: flex; align-items: center; gap: 10px; }
-.logo-img { width: 44px; height: 44px; border-radius: 12px; object-fit: contain; }
+.logo-img { width: 44px; height: 44px; border-radius: 50%; object-fit: contain; }
 .logo-text { font-family: var(--font-head); font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; }
 
-.header-actions { display: flex; gap: 8px; }
+.header-actions { display: flex; gap: 12px; }
 .btn-icon {
   width: 44px; height: 44px; border-radius: 50%; border: none;
   background: var(--bg-color); color: var(--text-main); cursor: pointer; transition: 0.2s ease;
@@ -133,7 +133,7 @@ body {
 .ring-text span { font-weight: 800; font-size: 1.2rem; line-height: 1; color: var(--text-main); }
 .ring-text small { font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; font-weight: 700; }
 
-.stat-info.right { align-items: flex-end; text-align: right; flex-shrink: 1; min-width: 0; }
+.stat-info.right { align-items: center; justify-content: center; text-align: center; flex-shrink: 1; min-width: 0; }
 .badge-role { background: rgba(255, 255, 255, 0.1); padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; color: var(--text-muted); display: inline-block; }
 
 /* Card 2: Money (Soft Peach) */
@@ -181,7 +181,7 @@ body {
 /* Info Section */
 .card-content { display: flex; flex-direction: column; gap: 6px; }
 .row-top { display: flex; align-items: center; gap: 10px; }
-.time-range { font-size: 1.05rem; font-weight: 700; color: var(--text-main); }
+.time-range { font-size: 1.05rem; font-weight: 700; color: var(--text-main); white-space: nowrap; }
 .dur-tag { font-size: 0.75rem; background: var(--bg-color); color: var(--text-main); padding: 4px 10px; border-radius: 100px; font-weight: 700; }
 .row-btm { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
 .note-text { max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
