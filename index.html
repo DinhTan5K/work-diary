@@ -84,43 +84,51 @@
   </div>
 
   <section class="stats-grid">
-    <div class="stat-card flex-row">
-      <div class="progress-wrapper">
-        <svg class="progress-ring" viewBox="0 0 80 80">
-          <circle class="ring-bg" stroke-width="6" fill="transparent" r="34" cx="40" cy="40"></circle>
-          <circle class="ring-val" stroke-width="6" fill="transparent" r="34" cx="40" cy="40" id="progressCircle"></circle>
-        </svg>
-        <div class="ring-text">
-          <span id="monthHours">0</span>
-          <small>HRS</small>
+    <!-- Card 1: Giờ làm -->
+    <div class="stat-card bento-hours">
+      <div class="stat-label">Giờ làm</div>
+      <div class="ring-center">
+        <div class="progress-wrapper">
+          <svg class="progress-ring" viewBox="0 0 80 80">
+            <circle class="ring-bg" stroke-width="6" fill="transparent" r="34" cx="40" cy="40"></circle>
+            <circle class="ring-val" stroke-width="6" fill="transparent" r="34" cx="40" cy="40" id="progressCircle"></circle>
+          </svg>
+          <div class="ring-text">
+            <span id="monthHours">0</span>
+            <small>HRS</small>
+          </div>
         </div>
       </div>
-      <div class="progress-wrapper">
-        <svg class="progress-ring" viewBox="0 0 80 80">
-          <circle class="ring-bg" stroke-width="6" fill="transparent" r="34" cx="40" cy="40"></circle>
-          <circle class="ring-val" stroke-width="6" fill="transparent" r="34" cx="40" cy="40" id="progressDaysCircle" style="stroke: #ff7e67;"></circle>
-        </svg>
-        <div class="ring-text">
-          <span id="monthDays">0</span>
-          <small>CÔNG</small>
-        </div>
-      </div>
-
     </div>
 
-    <div class="stat-card highlight-border">
-      <div class="icon-box gold"><i class="fa-solid fa-coins"></i></div>
-      <div class="stat-info">
-        <div class="label-row">
-           <span class="label">Thu nhập ước tính</span>
-           <button id="btnTogglePrivacy" class="btn-eye" title="Ẩn/Hiện số tiền">
-             <i class="fa-solid fa-eye-slash"></i>
-           </button>
+    <!-- Card 2: Số công -->
+    <div class="stat-card bento-days">
+      <div class="stat-label">Số công</div>
+      <div class="ring-center">
+        <div class="progress-wrapper">
+          <svg class="progress-ring" viewBox="0 0 80 80">
+            <circle class="ring-bg" stroke-width="6" fill="transparent" r="34" cx="40" cy="40"></circle>
+            <circle class="ring-val ring-val-days" stroke-width="6" fill="transparent" r="34" cx="40" cy="40" id="progressDaysCircle"></circle>
+          </svg>
+          <div class="ring-text">
+            <span id="monthDays">0</span>
+            <small>/27</small>
+          </div>
         </div>
-        
-        <span class="value money-text" id="monthMoney">******</span>
-        <span class="sub-text" id="totalMoney">Tổng: ******</span>
       </div>
+      <div class="mascot-mini" id="mascotText">Cố lên!</div>
+    </div>
+
+    <!-- Card 3: Thu nhập -->
+    <div class="stat-card bento-money">
+      <div class="stat-label-row">
+        <div class="stat-label">Thu nhập</div>
+        <button id="btnTogglePrivacy" class="btn-eye" title="Ẩn/Hiện số tiền">
+          <i class="fa-solid fa-eye-slash"></i>
+        </button>
+      </div>
+      <span class="value money-text" id="monthMoney">******</span>
+      <span class="sub-text" id="totalMoney">Tổng: ******</span>
     </div>
   </section>
   

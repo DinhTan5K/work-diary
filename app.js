@@ -478,17 +478,22 @@ async function render() {
   const daysCircle = document.getElementById("progressDaysCircle");
   if(daysCircle) {
     daysCircle.style.transition = "none";
-    daysCircle.style.strokeDashoffset = 213; // Reset to 0
+    daysCircle.style.strokeDashoffset = 213;
     setTimeout(() => {
       daysCircle.style.transition = "stroke-dashoffset 1s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
       const pDays = Math.min(uniqueDays / 27, 1);
       daysCircle.style.strokeDashoffset = 213 - (213 * pDays); 
-      if(pDays >= 1) {
-        daysCircle.style.stroke = "#ff7e67"; // Full color
-      } else {
-        daysCircle.style.stroke = "#ff7e67"; // Normal color
-      }
+      daysCircle.style.stroke = pDays >= 1 ? "#00ffaa" : "#b5a5e3";
     }, 50);
+  }
+
+  // Mascot text
+  const mascotEl = document.getElementById("mascotText");
+  if(mascotEl) {
+    if (uniqueDays >= 27) mascotEl.innerText = "🎉 Đủ 27 công!";
+    else if (uniqueDays >= 20) mascotEl.innerText = `Còn ${27 - uniqueDays} công nữa!`;
+    else if (uniqueDays >= 10) mascotEl.innerText = `Đã ${uniqueDays}/27 · Cố lên!`;
+    else mascotEl.innerText = `${uniqueDays}/27 công`;
   }
 }
 
