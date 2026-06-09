@@ -86,7 +86,7 @@
   <section class="stats-grid">
     <div class="stat-card flex-row">
       <div class="progress-wrapper">
-        <svg class="progress-ring" width="80" height="80">
+        <svg class="progress-ring" viewBox="0 0 80 80">
           <circle class="ring-bg" stroke-width="6" fill="transparent" r="34" cx="40" cy="40"></circle>
           <circle class="ring-val" stroke-width="6" fill="transparent" r="34" cx="40" cy="40" id="progressCircle"></circle>
         </svg>
@@ -95,10 +95,17 @@
           <small>HRS</small>
         </div>
       </div>
-      <div class="stat-info right">
-        <span class="label"><span id="lblUserRole" class="badge-role">CHỨC VỤ</span></span>
-        <span class="sub-text" id="lblUserName" title="Tên người dùng">Chưa đăng nhập</span>
+      <div class="progress-wrapper">
+        <svg class="progress-ring" viewBox="0 0 80 80">
+          <circle class="ring-bg" stroke-width="6" fill="transparent" r="34" cx="40" cy="40"></circle>
+          <circle class="ring-val" stroke-width="6" fill="transparent" r="34" cx="40" cy="40" id="progressDaysCircle" style="stroke: #ff7e67;"></circle>
+        </svg>
+        <div class="ring-text">
+          <span id="monthDays">0</span>
+          <small>CÔNG</small>
+        </div>
       </div>
+
     </div>
 
     <div class="stat-card highlight-border">

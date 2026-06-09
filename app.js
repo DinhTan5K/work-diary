@@ -346,7 +346,7 @@ window.checkIn = async (id, start, end, duration) => {
   const wage = Math.round(USER_WAGE * (duration / 3600000));
   await addDoc(COL, { start, end, duration: duration, wageRate: USER_WAGE, totalMoney: wage, note: "", uid: auth.currentUser.uid });
   await deleteDoc(doc(db,"work_schedule",id));
-  showToast("Chấm công thành công! Tiền đã về túi.", "success");
+  showToast("Chấm công thành công!", "success");
   renderSchedule();
   render();
 
@@ -436,7 +436,10 @@ async function render() {
   mMoney = totalHours * USER_WAGE;
   totalMoneyAll = grandTotalHours * USER_WAGE;
 
+  const uniqueDays = new Set(filteredLogs.map(l => new Date(l.start).getDate())).size;
+
   animateValue("monthHours", 0, totalHours, 1000, (v) => v.toFixed(1));
+  animateValue("monthDays", 0, uniqueDays, 1000, (v) => Math.round(v));
 
   // LOGIC KIỂM TRA ĐỂ ẨN/HIỆN TIỀN (MỚI)
   if (isMoneyVisible) {
@@ -467,6 +470,23 @@ async function render() {
         }
       } else {
         circle.style.stroke = "#00ffaa"; // Màu chuẩn
+      }
+    }, 50);
+  }
+
+  // Days Progress Ring
+  const daysCircle = document.getElementById("progressDaysCircle");
+  if(daysCircle) {
+    daysCircle.style.transition = "none";
+    daysCircle.style.strokeDashoffset = 213; // Reset to 0
+    setTimeout(() => {
+      daysCircle.style.transition = "stroke-dashoffset 1s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+      const pDays = Math.min(uniqueDays / 27, 1);
+      daysCircle.style.strokeDashoffset = 213 - (213 * pDays); 
+      if(pDays >= 1) {
+        daysCircle.style.stroke = "#ff7e67"; // Full color
+      } else {
+        daysCircle.style.stroke = "#ff7e67"; // Normal color
       }
     }, 50);
   }
