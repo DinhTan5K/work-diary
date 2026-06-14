@@ -8,7 +8,7 @@ import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndP
 
 // === LOGIC ẨN/HIỆN TIỀN (MỚI) ===
 let isMoneyVisible = localStorage.getItem('money_visible') === 'true'; // Lấy trạng thái đã lưu
-const btnPrivacy = document.querySelector("#btnTogglePrivacy");
+const btnPrivacyList = document.querySelectorAll(".btn-toggle-privacy");
 
 // --- ANIMATION HELPER ---
 function animateValue(elementId, start, end, duration, formatter) {
@@ -45,24 +45,23 @@ function showToast(msg, type = "error") {
 // --------------------------
 
 const updatePrivacyIcon = () => {
-  if (btnPrivacy) {
-    // Nếu đang hiện -> icon mắt mở, Nếu đang ẩn -> icon mắt gạch chéo
-    btnPrivacy.innerHTML = isMoneyVisible ? '<i class="fa-solid fa-eye"></i>' : '<i class="fa-solid fa-eye-slash"></i>';
-  }
+  btnPrivacyList.forEach(btn => {
+    btn.innerHTML = isMoneyVisible ? '<i class="fa-solid fa-eye"></i>' : '<i class="fa-solid fa-eye-slash"></i>';
+  });
 };
 
 // Chạy 1 lần khi mở app
 updatePrivacyIcon();
 
 // Khi bấm nút
-if (btnPrivacy) {
-  btnPrivacy.onclick = () => {
+btnPrivacyList.forEach(btn => {
+  btn.onclick = () => {
     isMoneyVisible = !isMoneyVisible; // Đảo ngược trạng thái
     localStorage.setItem('money_visible', isMoneyVisible); // Lưu vào bộ nhớ
     updatePrivacyIcon(); // Đổi icon
     render(); // Cập nhật lại giao diện ngay lập tức
   };
-}
+});
 // ===============================
 
 
@@ -80,6 +79,7 @@ const getDayName = (d) => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()]
 let selectedShift = null;
 let customMode = false;
 let isLoggingSchedule = false;
+let editModeId = null;
 
 let viewMonth = new Date().getMonth();
 let viewYear = new Date().getFullYear();
@@ -185,6 +185,13 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
   };
 });
 
+if ($("#btnGoToDiary")) {
+  $("#btnGoToDiary").onclick = () => {
+    const diaryTabBtn = document.querySelector(".tab-btn[data-target='tab-diary']");
+    if (diaryTabBtn) diaryTabBtn.click();
+  };
+}
+
 const toggleModal = (show) => $("#logModal").classList.toggle("hidden", !show);
 
 $("#fab").onclick = () => {
@@ -199,13 +206,17 @@ $("#fab").onclick = () => {
   const chk = $("#chkSavePreset");
   if(chk) chk.checked = false;
 
+  customMode = false;
+  selectedShift = null;
+
   renderShifts(); // Tự xóa các class active cũ
 
   $("#workDate").value =
     new Date().toISOString().split("T")[0];
 
   $("#inpNote").value = "";
-
+  $("#btnSave").innerText = "Lưu lại";
+  editModeId = null;
   toggleModal(true);
 };
 
@@ -221,6 +232,9 @@ $("#fab-schedule").onclick = () => {
   const chk = $("#chkSavePreset");
   if(chk) chk.checked = false;
 
+  customMode = false;
+  selectedShift = null;
+
   renderShifts(); 
 
   $("#workDate").value =
@@ -231,8 +245,8 @@ $("#fab-schedule").onclick = () => {
   toggleModal(true);
 };
 
-$("#btnCancel").onclick = () => toggleModal(false);
-$("#btnCloseTop").onclick = () => toggleModal(false);
+$("#btnCancel").onclick = () => { toggleModal(false); editModeId = null; };
+$("#btnCloseTop").onclick = () => { toggleModal(false); editModeId = null; };
 
 $("#btnSave").onclick = async () => {
   if (customMode) {
@@ -277,12 +291,22 @@ $("#btnSave").onclick = async () => {
   const dur = end - start;
 
   if (isLoggingSchedule) {
-    await addDoc(SCH_COL, { start, end, duration: dur, uid: auth.currentUser.uid });
-    showToast("Thêm lịch thành công!", "success");
+    if (editModeId) {
+      await updateDoc(doc(db, "work_schedule", editModeId), { start, end, duration: dur });
+      showToast("Cập nhật lịch thành công!", "success");
+    } else {
+      await addDoc(SCH_COL, { start, end, duration: dur, uid: auth.currentUser.uid });
+      showToast("Thêm lịch thành công!", "success");
+    }
   } else {
     const wage = Math.round(USER_WAGE * (dur / 3600000));
-    await addDoc(COL, { start, end, duration: dur, wageRate: USER_WAGE, totalMoney: wage, note: $("#inpNote").value, uid: auth.currentUser.uid });
-    showToast("Lưu ca làm thành công!", "success");
+    if (editModeId) {
+      await updateDoc(doc(db, "work_logs", editModeId), { start, end, duration: dur, totalMoney: wage, note: $("#inpNote").value });
+      showToast("Cập nhật ca làm thành công!", "success");
+    } else {
+      await addDoc(COL, { start, end, duration: dur, wageRate: USER_WAGE, totalMoney: wage, note: $("#inpNote").value, uid: auth.currentUser.uid });
+      showToast("Lưu ca làm thành công!", "success");
+    }
   }
 
   $("#btnSave").innerText = "Lưu lại"; $("#btnSave").disabled = false;
@@ -330,6 +354,7 @@ async function renderSchedule() {
       </div>
       <div class="card-actions" style="justify-content: center;">
         <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="btn-mini" onclick="editSchedule('${l.id}', ${l.start}, ${l.end})" title="Sửa lịch này" style="width: 40px; height: 40px;"><i class="fa-solid fa-pen"></i></button>
           <button class="btn-mini del" onclick="delSchedule('${l.id}')" title="Xóa lịch này" style="width: 40px; height: 40px;"><i class="fa-solid fa-trash"></i></button>
           <button class="btn-checkin" onclick="checkIn('${l.id}', ${l.start}, ${l.end}, ${l.duration})" style="padding: 12px 20px;">
             <i class="fa-solid fa-check"></i> Chấm công
@@ -421,8 +446,8 @@ async function render() {
         <div class="card-actions">
           <div class="wage-display">${fmtMoney(Math.round((l.duration/3600000) * USER_WAGE))}</div>
           <div class="act-btns">
-            <button class="btn-mini" onclick="updateNote('${l.id}', '${safeNote}')"><i class="fa-solid fa-pen"></i></button>
-            <button class="btn-mini del" onclick="del('${l.id}')"><i class="fa-solid fa-trash"></i></button>
+            <button class="btn-mini" onclick="editLog('${l.id}', ${l.start}, ${l.end}, '${safeNote}')" title="Sửa ca làm"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn-mini del" onclick="del('${l.id}')" title="Xóa ca làm"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
       `;
@@ -437,17 +462,78 @@ async function render() {
   totalMoneyAll = grandTotalHours * USER_WAGE;
 
   const uniqueDays = new Set(filteredLogs.map(l => new Date(l.start).getDate())).size;
+  const allTimeUniqueDays = new Set(logs.map(l => new Date(l.start).toLocaleDateString())).size;
 
   animateValue("monthHours", 0, totalHours, 1000, (v) => v.toFixed(1));
   animateValue("monthDays", 0, uniqueDays, 1000, (v) => Math.round(v));
+
+  // Update Overview Dashboard Stats
+  $("#overviewCurrentTitle").innerText = `Tháng ${viewMonth + 1}/${viewYear}`;
+  animateValue("overviewMonthHours", 0, totalHours, 1200, (v) => v.toFixed(1));
+  animateValue("overviewMonthDays", 0, uniqueDays, 1200, (v) => Math.round(v));
+  
+  // Group logs by month for the history list
+  const monthData = {};
+  logs.forEach(l => {
+    const d = new Date(l.start);
+    const key = `${d.getMonth() + 1}/${d.getFullYear()}`;
+    if (!monthData[key]) {
+      monthData[key] = { month: d.getMonth(), year: d.getFullYear(), hours: 0, days: new Set() };
+    }
+    monthData[key].hours += (l.duration || 0);
+    monthData[key].days.add(d.getDate());
+  });
+
+  const overviewList = document.getElementById("overviewMonthList");
+  if (overviewList) {
+    overviewList.innerHTML = "";
+    const sortedKeys = Object.keys(monthData).sort((a, b) => {
+      const [mA, yA] = a.split("/").map(Number);
+      const [mB, yB] = b.split("/").map(Number);
+      if (yA !== yB) return yB - yA;
+      return mB - mA;
+    });
+
+    sortedKeys.forEach(k => {
+      const mInfo = monthData[k];
+      const mTotalHours = mInfo.hours / 3600000;
+      const mTotalMoney = mTotalHours * USER_WAGE;
+      
+      const div = document.createElement("div");
+      div.className = "overview-month-summary";
+      div.onclick = () => {
+        viewMonth = mInfo.month;
+        viewYear = mInfo.year;
+        render();
+        const diaryTabBtn = document.querySelector(".tab-btn[data-target='tab-diary']");
+        if (diaryTabBtn) diaryTabBtn.click();
+      };
+      
+      div.innerHTML = `
+        <div class="oms-left">
+          <div class="oms-month">Tháng ${k}</div>
+          <div class="oms-stats">
+            <span>${mInfo.days.size} công</span> • 
+            <span>${mTotalHours.toFixed(1)} hrs</span>
+          </div>
+        </div>
+        <div class="oms-right" style="background: transparent; color: var(--primary); font-size: 1.15rem; width: auto; font-weight: 800; padding-right: 8px;">
+          <span class="money-text">${isMoneyVisible ? fmtMoney(mTotalMoney) : '******'}</span>
+        </div>
+      `;
+      overviewList.appendChild(div);
+    });
+  }
 
   // LOGIC KIỂM TRA ĐỂ ẨN/HIỆN TIỀN (MỚI)
   if (isMoneyVisible) {
     animateValue("monthMoney", 0, mMoney, 1200, fmtMoney);
     animateValue("totalMoney", 0, totalMoneyAll, 1200, (v) => "Tổng: " + fmtMoney(v));
+    animateValue("overviewMonthMoney", 0, mMoney, 1200, fmtMoney);
   } else {
     $("#monthMoney").innerText = "******";
     $("#totalMoney").innerText = "Tổng: ******";
+    $("#overviewMonthMoney").innerText = "******";
   }
   
   // Progress Ring
@@ -500,6 +586,44 @@ async function render() {
 window.updateNote = async (id, old) => { const n = prompt("Sửa ghi chú:", old); if(n!==null) { await updateDoc(doc(db,"work_logs",id),{note:n}); render(); }};
 window.del = async (id) => { if(confirm("Xóa ca làm này khỏi Nhật Ký?")) { await deleteDoc(doc(db,"work_logs",id)); render(); }};
 window.delSchedule = async (id) => { if(confirm("Hủy lịch làm việc này?")) { await deleteDoc(doc(db,"work_schedule",id)); showToast("Đã xóa lịch!", "success"); renderSchedule(); }};
+
+window.editLog = (id, start, end, note) => {
+  editModeId = id;
+  isLoggingSchedule = false;
+  openEditModal("Sửa ca làm", start, end, note);
+};
+
+window.editSchedule = (id, start, end) => {
+  editModeId = id;
+  isLoggingSchedule = true;
+  openEditModal("Sửa lịch làm", start, end, "");
+};
+
+function openEditModal(title, start, end, note) {
+  const d = new Date(start);
+  const sT = new Date(start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
+  const eT = new Date(end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
+
+  $("#workDate").value = d.toISOString().split("T")[0];
+  $("#customStart").value = sT;
+  $("#customEnd").value = eT;
+  $("#inpNote").value = note;
+  
+  $("#modalTitle").innerText = title;
+  $("#inpNote").closest('.field-group').style.display = isLoggingSchedule ? "none" : "block";
+  
+  // Set custom mode
+  document.querySelectorAll(".shift-btn").forEach(b => b.classList.remove("active", "selected"));
+  $("#customShift").style.display = "block";
+  customMode = true;
+  selectedShift = { start: sT, end: eT };
+  
+  const chk = $("#chkSavePreset");
+  if(chk) chk.checked = false;
+
+  $("#btnSave").innerText = "Cập nhật";
+  toggleModal(true);
+}
 // === SETTINGS MODAL ===
 const settingsModal = $("#settingsModal");
 const toggleSettings = (show) => settingsModal.classList.toggle("hidden", !show);
