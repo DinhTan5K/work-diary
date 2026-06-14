@@ -206,6 +206,61 @@
     </div>
   </div>
 </div>
+<!-- === SETTINGS MODAL === -->
+<div id="settingsModal" class="modal-backdrop hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Cài đặt</h3>
+      <button id="btnCloseSettings" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Theme -->
+      <div class="settings-section">
+        <div class="settings-label"><i class="fa-solid fa-palette"></i> Chủ đề màu sắc</div>
+        <div class="theme-grid" id="themeGrid">
+          <button class="theme-dot" data-theme="default" title="Midnight">
+            <span class="dot-preview" style="background: linear-gradient(135deg, #1a2926, #221d2e);"></span>
+            <span class="dot-name">Midnight</span>
+          </button>
+          <button class="theme-dot" data-theme="ocean" title="Ocean">
+            <span class="dot-preview" style="background: linear-gradient(135deg, #0a1628, #132744);"></span>
+            <span class="dot-name">Ocean</span>
+          </button>
+          <button class="theme-dot" data-theme="rose" title="Rosé">
+            <span class="dot-preview" style="background: linear-gradient(135deg, #2a1520, #301a25);"></span>
+            <span class="dot-name">Rosé</span>
+          </button>
+          <button class="theme-dot" data-theme="forest" title="Forest">
+            <span class="dot-preview" style="background: linear-gradient(135deg, #0f1f15, #1a2e1e);"></span>
+            <span class="dot-name">Forest</span>
+          </button>
+          <button class="theme-dot" data-theme="sunset" title="Sunset">
+            <span class="dot-preview" style="background: linear-gradient(135deg, #2b1a0e, #3a2010);"></span>
+            <span class="dot-name">Sunset</span>
+          </button>
+          <button class="theme-dot" data-theme="amoled" title="AMOLED">
+            <span class="dot-preview" style="background: #000000; border: 1px solid #333;"></span>
+            <span class="dot-name">AMOLED</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Wage -->
+      <div class="settings-section">
+        <div class="settings-label"><i class="fa-solid fa-money-bill-wave"></i> Lương / giờ</div>
+        <div class="wage-input-row">
+          <input type="number" id="inpWage" class="wage-input" placeholder="25000">
+          <span class="wage-unit">VNĐ/h</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button id="btnCloseSettingsBottom" class="btn-primary" style="flex:1;">Xong</button>
+    </div>
+  </div>
+</div>
 
 <div id="toastContainer" class="toast-container"></div>
 

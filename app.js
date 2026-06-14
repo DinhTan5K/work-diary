@@ -500,7 +500,56 @@ async function render() {
 window.updateNote = async (id, old) => { const n = prompt("Sửa ghi chú:", old); if(n!==null) { await updateDoc(doc(db,"work_logs",id),{note:n}); render(); }};
 window.del = async (id) => { if(confirm("Xóa ca làm này khỏi Nhật Ký?")) { await deleteDoc(doc(db,"work_logs",id)); render(); }};
 window.delSchedule = async (id) => { if(confirm("Hủy lịch làm việc này?")) { await deleteDoc(doc(db,"work_schedule",id)); showToast("Đã xóa lịch!", "success"); renderSchedule(); }};
-$("#btnSettings").onclick = () => { const w = prompt("Lương/giờ:", USER_WAGE); if(w) { USER_WAGE=parseInt(w); localStorage.setItem('shift_wage',USER_WAGE); render(); }};
+// === SETTINGS MODAL ===
+const settingsModal = $("#settingsModal");
+const toggleSettings = (show) => settingsModal.classList.toggle("hidden", !show);
+
+// Open
+$("#btnSettings").onclick = () => {
+  $("#inpWage").value = USER_WAGE;
+  
+  // Highlight active theme
+  const saved = localStorage.getItem('kaito_theme') || 'default';
+  document.querySelectorAll(".theme-dot").forEach(d => {
+    d.classList.toggle("active", d.dataset.theme === saved);
+  });
+  
+  toggleSettings(true);
+};
+
+// Close
+$("#btnCloseSettings").onclick = () => toggleSettings(false);
+$("#btnCloseSettingsBottom").onclick = () => {
+  // Save wage
+  const w = parseInt($("#inpWage").value);
+  if (w && w > 0) {
+    USER_WAGE = w;
+    localStorage.setItem('shift_wage', USER_WAGE);
+    render();
+  }
+  toggleSettings(false);
+  showToast("Đã lưu cài đặt!", "success");
+};
+
+// Theme switching
+function applyTheme(name) {
+  document.body.className = name === 'default' ? '' : `theme-${name}`;
+  localStorage.setItem('kaito_theme', name);
+  
+  // Update active dot
+  document.querySelectorAll(".theme-dot").forEach(d => {
+    d.classList.toggle("active", d.dataset.theme === name);
+  });
+}
+
+// Load saved theme on start
+const savedTheme = localStorage.getItem('kaito_theme') || 'default';
+applyTheme(savedTheme);
+
+// Theme dot click
+document.querySelectorAll(".theme-dot").forEach(dot => {
+  dot.onclick = () => applyTheme(dot.dataset.theme);
+});
 
 $("#btnPrevMonth").onclick = () => {
   viewMonth--;
