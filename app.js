@@ -68,7 +68,19 @@ btnPrivacyList.forEach(btn => {
 const COL = collection(db, "work_logs");
 const SCH_COL = collection(db, "work_schedule");
 let USER_WAGE = parseInt(localStorage.getItem('shift_wage')) || 25000;
-const TARGET_HOURS = 200; 
+let TARGET_HOURS = parseInt(localStorage.getItem('kaito_target_hours')) || 200;
+let TARGET_DAYS = parseInt(localStorage.getItem('kaito_target_days')) || 27;
+let APP_NAME = localStorage.getItem('kaito_app_name') || "KAITO";
+
+function applyCustomSettings() {
+  const loading = document.getElementById("appNameLoading");
+  if (loading) loading.innerText = APP_NAME;
+  const auth = document.getElementById("appNameAuth");
+  if (auth) auth.innerText = APP_NAME;
+  const targetUI = document.getElementById("monthTargetDays");
+  if (targetUI) targetUI.innerText = "/" + TARGET_DAYS;
+}
+setTimeout(applyCustomSettings, 100);
 const CLOUD_NAME = "do48qpmut"; 
 const UPLOAD_PRESET = "fora";
 
@@ -571,7 +583,7 @@ async function render() {
     daysCircle.style.strokeDashoffset = 213;
     setTimeout(() => {
       daysCircle.style.transition = "stroke-dashoffset 1s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-      const pDays = Math.min(uniqueDays / 27, 1);
+      const pDays = Math.min(uniqueDays / TARGET_DAYS, 1);
       daysCircle.style.strokeDashoffset = 213 - (213 * pDays); 
       daysCircle.style.stroke = pDays >= 1 ? "#00ffaa" : "#b5a5e3";
     }, 50);
@@ -580,10 +592,10 @@ async function render() {
   // Mascot text
   const mascotEl = document.getElementById("mascotText");
   if(mascotEl) {
-    if (uniqueDays >= 27) mascotEl.innerText = "🎉 Đủ 27 công!";
-    else if (uniqueDays >= 20) mascotEl.innerText = `Còn ${27 - uniqueDays} công nữa!`;
-    else if (uniqueDays >= 10) mascotEl.innerText = `Đã ${uniqueDays}/27 · Cố lên!`;
-    else mascotEl.innerText = `${uniqueDays}/27 công`;
+    if (uniqueDays >= TARGET_DAYS) mascotEl.innerText = `🎉 Đủ ${TARGET_DAYS} công!`;
+    else if (uniqueDays >= TARGET_DAYS * 0.75) mascotEl.innerText = `Còn ${TARGET_DAYS - uniqueDays} công nữa!`;
+    else if (uniqueDays >= TARGET_DAYS * 0.35) mascotEl.innerText = `Đã ${uniqueDays}/${TARGET_DAYS} · Cố lên!`;
+    else mascotEl.innerText = `${uniqueDays}/${TARGET_DAYS} công`;
   }
 }
 
@@ -635,6 +647,9 @@ const toggleSettings = (show) => settingsModal.classList.toggle("hidden", !show)
 // Open
 $("#btnSettings").onclick = () => {
   $("#inpWage").value = USER_WAGE;
+  const inpAppName = $("#inpAppName"); if(inpAppName) inpAppName.value = APP_NAME;
+  const inpTargetHours = $("#inpTargetHours"); if(inpTargetHours) inpTargetHours.value = TARGET_HOURS;
+  const inpTargetDays = $("#inpTargetDays"); if(inpTargetDays) inpTargetDays.value = TARGET_DAYS;
   
   // Highlight active theme
   const saved = localStorage.getItem('kaito_theme') || 'default';
@@ -653,8 +668,28 @@ $("#btnCloseSettingsBottom").onclick = () => {
   if (w && w > 0) {
     USER_WAGE = w;
     localStorage.setItem('shift_wage', USER_WAGE);
-    render();
   }
+  
+  const inpAppName = $("#inpAppName");
+  if (inpAppName) {
+    APP_NAME = inpAppName.value.trim() || "KAITO";
+    localStorage.setItem('kaito_app_name', APP_NAME);
+  }
+  
+  const th = parseInt($("#inpTargetHours").value);
+  if (th && th > 0) {
+    TARGET_HOURS = th;
+    localStorage.setItem('kaito_target_hours', TARGET_HOURS);
+  }
+  
+  const td = parseInt($("#inpTargetDays").value);
+  if (td && td > 0) {
+    TARGET_DAYS = td;
+    localStorage.setItem('kaito_target_days', TARGET_DAYS);
+  }
+
+  applyCustomSettings();
+  render();
   toggleSettings(false);
   showToast("Đã lưu cài đặt!", "success");
 };

@@ -19,7 +19,7 @@
 <!-- === LOADING SCREEN === -->
 <div id="loadingScreen" style="display: flex; height: 100vh; width: 100vw; align-items: center; justify-content: center; flex-direction: column;">
   <img src="logo.png" alt="Logo" class="logo-img" style="width: 80px; height: 80px; border-radius: 20px; animation: pulse 1.5s infinite;">
-  <div style="margin-top: 15px; font-family: var(--font-head); font-weight: 800; font-size: 1.5rem; letter-spacing: 2px;">KAITO</div>
+  <div id="appNameLoading" style="margin-top: 15px; font-family: var(--font-head); font-weight: 800; font-size: 1.5rem; letter-spacing: 2px;">KAITO</div>
 </div>
 
 <style>
@@ -35,7 +35,7 @@
   <div class="auth-card">
     <div class="brand auth-brand">
       <img src="logo.png" alt="Logo" class="logo-img">
-      <div class="logo-text">KAITO</div>
+      <div id="appNameAuth" class="logo-text">KAITO</div>
     </div>
     
     <div class="auth-tabs">
@@ -152,7 +152,7 @@
           </svg>
           <div class="ring-text">
             <span id="monthDays">0</span>
-            <small>/27</small>
+            <small id="monthTargetDays">/27</small>
           </div>
         </div>
       </div>
@@ -311,6 +311,25 @@
         </div>
       </div>
 
+      <!-- Goals & General Settings -->
+      <div class="settings-section">
+        <div class="settings-label"><i class="fa-solid fa-bullseye"></i> Mục tiêu & Hiển thị</div>
+        <div class="field-group full" style="margin-bottom: 12px;">
+          <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Tên hiển thị</label>
+          <input type="text" id="inpAppName" class="wage-input" style="background: var(--card-bg); border-radius: 8px; font-size: 1rem; padding: 12px;" placeholder="KAITO">
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <div class="field-group full">
+            <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Mục tiêu giờ/tháng</label>
+            <input type="number" id="inpTargetHours" class="wage-input" style="background: var(--card-bg); border-radius: 8px; font-size: 1rem; padding: 12px;" placeholder="200">
+          </div>
+          <div class="field-group full">
+            <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Mục tiêu công/tháng</label>
+            <input type="number" id="inpTargetDays" class="wage-input" style="background: var(--card-bg); border-radius: 8px; font-size: 1rem; padding: 12px;" placeholder="27">
+          </div>
+        </div>
+      </div>
+
     </div>
     <div class="modal-footer">
       <button id="btnCloseSettingsBottom" class="btn-primary" style="flex:1;">Xong</button>
@@ -320,6 +339,25 @@
 
 <div id="toastContainer" class="toast-container"></div>
 
+<script>
+  (function(){
+    var name = localStorage.getItem('kaito_app_name');
+    if(name) {
+      var el1 = document.getElementById('appNameLoading'); if(el1) el1.innerText = name;
+      var el2 = document.getElementById('appNameAuth'); if(el2) el2.innerText = name;
+    }
+    var logo = localStorage.getItem('kaito_custom_logo');
+    if(logo) {
+      var imgs = document.querySelectorAll('.logo-img');
+      for(var i=0; i<imgs.length; i++) imgs[i].src = logo;
+    }
+    var targetDays = localStorage.getItem('kaito_target_days');
+    if(targetDays) {
+      var td = document.getElementById('monthTargetDays');
+      if(td) td.innerText = '/' + targetDays;
+    }
+  })();
+</script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
