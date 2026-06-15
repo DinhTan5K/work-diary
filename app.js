@@ -337,29 +337,33 @@ async function renderSchedule() {
     const eT = new Date(l.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
     const h = (l.duration/3600000).toFixed(1);
 
+    // Check if schedule is today
+    const today = new Date();
+    const isToday = d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+
     const div = document.createElement("div");
-    div.className = "work-card";
-    div.style.animationDelay = `${idx * 0.05}s`;
+    div.className = `sch-card${isToday ? ' sch-today' : ''}`;
+    div.style.animationDelay = `${idx * 0.07}s`;
     
     div.innerHTML = `
-      <div class="card-date">
-        <span class="d-weekday">${wk}</span>
-        <span class="d-day">${day}/${month}</span>
-      </div>
-      <div class="card-content" style="justify-content: center;">
-        <div class="row-top">
-          <span class="time-range">${sT} - ${eT}</span>
-          <span class="dur-tag">${h}h</span>
+      <div class="sch-top">
+        <div class="sch-date-badge">
+          <span class="sch-weekday">${wk}</span>
+          <span class="sch-day">${day}/${month}</span>
+        </div>
+        <div class="sch-time-info">
+          <div class="sch-time">${sT} – ${eT}</div>
+          <span class="sch-dur">${h} giờ</span>
         </div>
       </div>
-      <div class="card-actions" style="justify-content: center;">
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <button class="btn-mini" onclick="editSchedule('${l.id}', ${l.start}, ${l.end})" title="Sửa lịch này" style="width: 40px; height: 40px;"><i class="fa-solid fa-pen"></i></button>
-          <button class="btn-mini del" onclick="delSchedule('${l.id}')" title="Xóa lịch này" style="width: 40px; height: 40px;"><i class="fa-solid fa-trash"></i></button>
-          <button class="btn-checkin" onclick="checkIn('${l.id}', ${l.start}, ${l.end}, ${l.duration})" style="padding: 12px 20px;">
-            <i class="fa-solid fa-check"></i> Chấm công
-          </button>
+      <div class="sch-bottom">
+        <div class="sch-actions-left">
+          <button class="sch-btn-edit" onclick="editSchedule('${l.id}', ${l.start}, ${l.end})" title="Sửa lịch này"><i class="fa-solid fa-pen-to-square"></i></button>
+          <button class="sch-btn-del" onclick="delSchedule('${l.id}')" title="Xóa lịch này"><i class="fa-solid fa-trash-can"></i></button>
         </div>
+        <button class="sch-btn-checkin" onclick="checkIn('${l.id}', ${l.start}, ${l.end}, ${l.duration})">
+          <i class="fa-solid fa-circle-check"></i> Chấm công
+        </button>
       </div>
     `;
     tl.appendChild(div);
@@ -674,6 +678,79 @@ applyTheme(savedTheme);
 document.querySelectorAll(".theme-dot").forEach(dot => {
   dot.onclick = () => applyTheme(dot.dataset.theme);
 });
+
+// === CUSTOM LOGO ===
+const DEFAULT_LOGO = "logo.png";
+
+function applyCustomLogo(src) {
+  document.querySelectorAll(".logo-img").forEach(img => img.src = src);
+  const preview = $("#logoPreviewImg");
+  if (preview) preview.src = src;
+}
+
+function loadSavedLogo() {
+  const saved = localStorage.getItem('kaito_custom_logo');
+  if (saved) applyCustomLogo(saved);
+}
+
+// Load on start
+loadSavedLogo();
+
+// Click preview to trigger file input
+$("#logoPreviewWrap").onclick = () => $("#inpLogoFile").click();
+
+// Handle file selection
+$("#inpLogoFile").onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    showToast("Chỉ chấp nhận file ảnh!", "error");
+    return;
+  }
+  
+  // Validate file size (max 2MB)
+  if (file.size > 2 * 1024 * 1024) {
+    showToast("Ảnh quá lớn! Tối đa 2MB.", "error");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    // Compress image via canvas
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = 256; // resize to 256x256
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      
+      // Crop to square center
+      const minDim = Math.min(img.width, img.height);
+      const sx = (img.width - minDim) / 2;
+      const sy = (img.height - minDim) / 2;
+      ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+      
+      const dataURL = canvas.toDataURL('image/jpeg', 0.85);
+      localStorage.setItem('kaito_custom_logo', dataURL);
+      applyCustomLogo(dataURL);
+      showToast("Đã thay đổi ảnh đại diện!", "success");
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = ''; // Reset input
+};
+
+// Reset logo
+$("#btnResetLogo").onclick = (e) => {
+  e.stopPropagation();
+  localStorage.removeItem('kaito_custom_logo');
+  applyCustomLogo(DEFAULT_LOGO);
+  showToast("Đã khôi phục logo mặc định!", "success");
+};
 
 $("#btnPrevMonth").onclick = () => {
   viewMonth--;

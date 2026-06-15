@@ -295,6 +295,22 @@
         </div>
       </div>
 
+      <!-- Custom Logo -->
+      <div class="settings-section">
+        <div class="settings-label"><i class="fa-solid fa-image"></i> Ảnh đại diện</div>
+        <div class="logo-change-row">
+          <div class="logo-preview-wrap" id="logoPreviewWrap">
+            <img src="logo.png" alt="Logo" class="logo-preview-img" id="logoPreviewImg">
+            <div class="logo-overlay"><i class="fa-solid fa-camera"></i></div>
+          </div>
+          <div class="logo-change-info">
+            <span class="logo-change-hint">Bấm vào ảnh để thay đổi</span>
+            <button id="btnResetLogo" class="btn-reset-logo"><i class="fa-solid fa-rotate-left"></i> Khôi phục mặc định</button>
+          </div>
+          <input type="file" id="inpLogoFile" accept="image/*" style="display: none;">
+        </div>
+      </div>
+
     </div>
     <div class="modal-footer">
       <button id="btnCloseSettingsBottom" class="btn-primary" style="flex:1;">Xong</button>

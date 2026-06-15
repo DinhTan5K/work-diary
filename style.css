@@ -257,15 +257,111 @@ body {
 .btn-mini.del { color: #ff6b6b; background: rgba(255, 92, 92, 0.1); }
 .btn-mini.del:hover { background: rgba(255, 92, 92, 0.2); }
 
-/* Schedule Card specific */
+/* Schedule Header */
 .schedule-header { margin-bottom: 20px; }
 .schedule-header h3 { margin: 0 0 4px 0; font-size: 1.4rem; font-weight: 800; }
-.btn-checkin {
-  padding: 10px 16px; border-radius: 100px; border: none;
-  background: #00ffaa; color: #000; font-weight: 800; font-size: 0.9rem;
-  cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+
+/* =========================================
+   Schedule Card — Premium Redesign
+   ========================================= */
+.sch-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 14px;
+  display: flex; flex-direction: column; gap: 16px;
+  position: relative; overflow: hidden;
+  opacity: 0; animation: schSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-.btn-checkin:hover { transform: scale(1.05); }
+.sch-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #00ffaa, #00c8ff);
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+.sch-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0, 255, 170, 0.08); }
+.sch-card:hover::before { opacity: 1; }
+
+/* Today highlight */
+.sch-card.sch-today { border-color: rgba(0, 255, 170, 0.2); }
+.sch-card.sch-today::before { opacity: 1; height: 3px; background: linear-gradient(90deg, #00ffaa, #7affc8, #00ffaa); background-size: 200% 100%; animation: schShimmer 2s linear infinite; }
+
+@keyframes schSlideUp {
+  0% { opacity: 0; transform: translateY(24px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes schShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Top row: date badge + time */
+.sch-top {
+  display: flex; align-items: center; gap: 16px;
+}
+.sch-date-badge {
+  width: 54px; height: 54px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--bento-3), rgba(176, 130, 255, 0.15));
+  border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1px;
+}
+.sch-weekday {
+  font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+  color: #b5a5e3; letter-spacing: 0.5px; line-height: 1.2;
+}
+.sch-day {
+  font-size: 1.15rem; font-weight: 800; color: #d0bdf4; line-height: 1;
+  letter-spacing: -0.5px;
+}
+.sch-time-info {
+  display: flex; flex-direction: column; gap: 4px; flex: 1;
+}
+.sch-time {
+  font-size: 1.15rem; font-weight: 700; color: var(--text-main);
+  letter-spacing: -0.3px;
+}
+.sch-dur {
+  font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
+}
+
+/* Bottom row: actions */
+.sch-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.sch-actions-left {
+  display: flex; gap: 8px;
+}
+.sch-btn-edit, .sch-btn-del {
+  width: 38px; height: 38px; border-radius: 12px; border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; cursor: pointer; transition: all 0.2s ease;
+}
+.sch-btn-edit {
+  background: rgba(255, 255, 255, 0.06); color: var(--text-muted);
+}
+.sch-btn-edit:hover { background: rgba(255, 255, 255, 0.12); color: var(--text-main); transform: scale(1.08); }
+.sch-btn-del {
+  background: rgba(255, 80, 80, 0.08); color: #ff6b6b;
+}
+.sch-btn-del:hover { background: rgba(255, 80, 80, 0.18); transform: scale(1.08); }
+
+.sch-btn-checkin {
+  padding: 10px 20px; border-radius: 100px; border: none;
+  background: linear-gradient(135deg, #00ffaa, #00e09a);
+  color: #000; font-weight: 800; font-size: 0.85rem;
+  cursor: pointer; transition: all 0.25s ease;
+  display: flex; align-items: center; gap: 7px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 255, 170, 0.2);
+}
+.sch-btn-checkin:hover { transform: scale(1.05); box-shadow: 0 6px 24px rgba(0, 255, 170, 0.35); }
+.sch-btn-checkin:active { transform: scale(0.97); }
 
 /* --- FAB --- */
 .fab-main {
@@ -505,6 +601,49 @@ body.theme-amoled .month-selector { background: #0a0a0a; }
   padding-right: 16px; white-space: nowrap;
 }
 
+/* Custom Logo Changer */
+.logo-change-row {
+  display: flex; align-items: center; gap: 16px;
+}
+.logo-preview-wrap {
+  width: 64px; height: 64px; flex-shrink: 0;
+  border-radius: 18px; position: relative;
+  cursor: pointer; overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
+}
+.logo-preview-wrap:hover {
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+.logo-preview-img {
+  width: 100%; height: 100%; object-fit: cover;
+  border-radius: 16px;
+}
+.logo-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.2rem;
+  opacity: 0; transition: opacity 0.25s ease;
+  border-radius: 16px;
+}
+.logo-preview-wrap:hover .logo-overlay { opacity: 1; }
+.logo-change-info {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.logo-change-hint {
+  font-size: 0.8rem; color: var(--text-muted); font-weight: 600;
+}
+.btn-reset-logo {
+  background: none; border: none; cursor: pointer;
+  color: #ff6b6b; font-size: 0.78rem; font-weight: 700;
+  font-family: var(--font-main);
+  display: flex; align-items: center; gap: 6px;
+  padding: 0; transition: 0.2s;
+}
+.btn-reset-logo:hover { color: #ff4040; transform: translateX(2px); }
+
 /* =========================================
    3. RESPONSIVE FIXES (360px)
    ========================================= */
@@ -541,12 +680,14 @@ body.theme-amoled .month-selector { background: #0a0a0a; }
   .shift-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .shift-btn { padding: 12px; font-size: 0.9rem; }
   
-  /* Tabs & Schedule Mobile Fixes */
-  .tabs-nav { padding: 6px; gap: 6px; }
-  .tab-btn { padding: 10px; font-size: 0.95rem; }
+  /* Schedule card mobile */
+  .sch-card { padding: 16px; margin-bottom: 12px; }
+  .sch-date-badge { width: 48px; height: 48px; border-radius: 14px; }
+  .sch-day { font-size: 1.05rem; }
+  .sch-time { font-size: 1.05rem; }
+  .sch-btn-checkin { padding: 9px 16px; font-size: 0.8rem; }
+  .sch-btn-edit, .sch-btn-del { width: 34px; height: 34px; border-radius: 10px; font-size: 13px; }
   .schedule-header h3 { font-size: 1.2rem; }
-  .btn-checkin { padding: 10px 12px !important; font-size: 0.85rem; }
-  .btn-mini.del { width: 34px !important; height: 34px !important; }
 }
 
 /* =========================================
