@@ -721,6 +721,8 @@ function applyCustomLogo(src) {
   document.querySelectorAll(".logo-img").forEach(img => img.src = src);
   const preview = $("#logoPreviewImg");
   if (preview) preview.src = src;
+  const favicon = $("#favicon"); if (favicon) favicon.href = src;
+  const appleIcon = $("#appleIcon"); if (appleIcon) appleIcon.href = src;
 }
 
 function loadSavedLogo() {

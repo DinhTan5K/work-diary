@@ -10,7 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="style.css">
-  <link rel="shortcut icon" href="logo.png" type="image/x-icon">
+  <link id="favicon" rel="shortcut icon" href="logo.png" type="image/x-icon">
+  <link id="appleIcon" rel="apple-touch-icon" href="logo.png">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 
@@ -350,6 +351,8 @@
     if(logo) {
       var imgs = document.querySelectorAll('.logo-img');
       for(var i=0; i<imgs.length; i++) imgs[i].src = logo;
+      var favicon = document.getElementById('favicon'); if(favicon) favicon.href = logo;
+      var appleIcon = document.getElementById('appleIcon'); if(appleIcon) appleIcon.href = logo;
     }
     var targetDays = localStorage.getItem('kaito_target_days');
     if(targetDays) {
