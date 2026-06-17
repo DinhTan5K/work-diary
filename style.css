@@ -2,18 +2,18 @@
    1. CORE VARIABLES & RESET (NEO-BRUTALISM)
    ========================================= */
 :root {
-  --bg-color: #fdf5e6; /* Warm light beige */
-  --card-bg: #ffffff; 
-  --text-main: #111111; 
-  --text-muted: #555555; 
-  --border-color: #000000; 
+  --bg-color: #e5e5e5; /* Light Gray Background */
+  --card-bg: #ffffff; /* Pure White Cards */
+  --text-main: #000000; /* Black Text */
+  --text-muted: #555555; /* Dark Gray Text */
+  --border-color: #000000; /* Black Borders */
   
-  --bento-1: #bbf7d0; /* light green */
-  --bento-2: #fbcfe8; /* light pink */
-  --bento-3: #bfdbfe; /* light blue */
+  --bento-1: #ffffff; /* White */
+  --bento-2: #ffffff; /* White */
+  --bento-3: #ffffff; /* White */
   
-  --primary: #fde047; /* Yellow */
-  --accent: #ff4757; /* Red/Orange */
+  --primary: #ffffff; /* White Buttons */
+  --accent: #000000; /* Black Accents */
   
   --font-main: 'Comfortaa', sans-serif;
   --font-head: 'Comfortaa', sans-serif;
@@ -215,7 +215,6 @@ body {
   display: flex; flex-direction: column; 
   align-items: center; justify-content: center; 
   z-index: 10;
-  margin-top: -8px; /* Shift text UP to match the wreath's visual center */
 }
 .ring-text span { 
   font-weight: 900; 
@@ -498,7 +497,7 @@ input[type="checkbox"] {
 body.theme-ocean { --bg-color: #e0f2fe; --card-bg: #fff; --bento-1: #bae6fd; --bento-2: #fbcfe8; --bento-3: #bfdbfe; --primary: #38bdf8; }
 
 /* Rosé -> Peach */
-body.theme-rose { --bg-color: #ffedd5; --card-bg: #fff; --bento-1: #fef08a; --bento-2: #fbcfe8; --bento-3: #fed7aa; --primary: #fb923c; }
+body.theme-rose { --bg-color: #ffb3c6; --card-bg: #fff; --bento-1: #ff2a70; --bento-2: #ff79a1; --bento-3: #ffffff; --primary: #ff2a70; --accent: #000000; }
 
 /* Forest -> Mint */
 body.theme-forest { --bg-color: #dcfce7; --card-bg: #fff; --bento-1: #bbf7d0; --bento-2: #fef08a; --bento-3: #a7f3d0; --primary: #4ade80; }
@@ -608,7 +607,6 @@ body.theme-amoled { --bg-color: #ffffff; --card-bg: #ffffff; --bento-1: #e5e5e5;
   .work-card { padding: 16px 12px; gap: 12px; grid-template-columns: auto 1fr auto; }
   
   .progress-wrapper { width: 90px; height: 90px; min-width: 90px; min-height: 90px; }
-  .ring-text { margin-top: -6px; }
   .ring-text span { font-size: 0.95rem; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
   .ring-text small { font-size: 0.6rem; margin-top: 2px; }
   
