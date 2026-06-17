@@ -77,8 +77,6 @@ function applyCustomSettings() {
   if (loading) loading.innerText = APP_NAME;
   const auth = document.getElementById("appNameAuth");
   if (auth) auth.innerText = APP_NAME;
-  const targetUI = document.getElementById("monthTargetDays");
-  if (targetUI) targetUI.innerText = "/" + TARGET_DAYS;
 }
 setTimeout(applyCustomSettings, 100);
 const CLOUD_NAME = "do48qpmut"; 
@@ -592,9 +590,9 @@ async function render() {
   // Mascot text
   const mascotEl = document.getElementById("mascotText");
   if(mascotEl) {
-    if (uniqueDays >= TARGET_DAYS) mascotEl.innerText = `🎉 Đủ ${TARGET_DAYS} công!`;
+    if (uniqueDays >= TARGET_DAYS) mascotEl.innerText = `Đủ ${TARGET_DAYS} công!`;
     else if (uniqueDays >= TARGET_DAYS * 0.75) mascotEl.innerText = `Còn ${TARGET_DAYS - uniqueDays} công nữa!`;
-    else if (uniqueDays >= TARGET_DAYS * 0.35) mascotEl.innerText = `Đã ${uniqueDays}/${TARGET_DAYS} · Cố lên!`;
+    else if (uniqueDays >= TARGET_DAYS * 0.35) mascotEl.innerText = `${uniqueDays}/${TARGET_DAYS}`;
     else mascotEl.innerText = `${uniqueDays}/${TARGET_DAYS} công`;
   }
 }
