@@ -72,11 +72,29 @@
     </div>
   </header>
 
-  <div class="tabs-nav">
-    <button class="tab-btn active" data-target="tab-overview"><i class="fa-solid fa-chart-pie"></i></button>
-    <button class="tab-btn" data-target="tab-diary"><i class="fa-solid fa-book"></i></button>
-    <button class="tab-btn" data-target="tab-schedule"><i class="fa-solid fa-calendar-days"></i></button>
+  <!-- GREETING SECTION -->
+  <div class="greeting-section" id="greetingSection">
+    <div class="greeting-text">
+      <span class="greeting-hello" id="greetingHello">Xin chào,</span>
+      <span class="greeting-name" id="lblUserName">bạn</span>
+    </div>
+    <div class="greeting-sub" id="greetingSub">Chúc bạn một ngày làm việc hiệu quả!</div>
   </div>
+
+  <nav class="tabs-nav" id="bottomNav">
+    <button class="tab-btn active" data-target="tab-overview">
+      <i class="fa-solid fa-chart-pie"></i>
+      <span class="tab-label"></span>
+    </button>
+    <button class="tab-btn" data-target="tab-diary">
+      <i class="fa-solid fa-book"></i>
+      <span class="tab-label"></span>
+    </button>
+    <button class="tab-btn" data-target="tab-schedule">
+      <i class="fa-solid fa-calendar-days"></i>
+      <span class="tab-label"></span>
+    </button>
+  </nav>
 
   <!-- TAB TỔNG QUAN -->
   <div id="tab-overview" class="tab-content active">
@@ -266,7 +284,7 @@
             <span class="dot-name">Ocean</span>
           </button>
           <button class="theme-dot" data-theme="rose" title="Rosé">
-            <span class="dot-preview" style="background: linear-gradient(135deg, #2a1520, #301a25);"></span>
+            <span class="dot-preview" style="background: linear-gradient(135deg, #E9A1B3, #94676E);"></span>
             <span class="dot-name">Rosé</span>
           </button>
           <button class="theme-dot" data-theme="forest" title="Forest">
@@ -289,7 +307,6 @@
         <div class="settings-label"><i class="fa-solid fa-money-bill-wave"></i> Lương / giờ</div>
         <div class="wage-input-row">
           <input type="number" id="inpWage" class="wage-input" placeholder="25000">
-          <span class="wage-unit">VNĐ/h</span>
         </div>
       </div>
 
@@ -318,11 +335,11 @@
         </div>
         <div style="display: flex; gap: 12px;">
           <div class="field-group full">
-            <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Mục tiêu giờ/tháng</label>
+            <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Mục tiêu giờ</label>
             <input type="number" id="inpTargetHours" class="wage-input" style="background: var(--card-bg); border-radius: 8px; font-size: 1rem; padding: 12px;" placeholder="200">
           </div>
           <div class="field-group full">
-            <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Mục tiêu công/tháng</label>
+            <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Mục tiêu công</label>
             <input type="number" id="inpTargetDays" class="wage-input" style="background: var(--card-bg); border-radius: 8px; font-size: 1rem; padding: 12px;" placeholder="27">
           </div>
         </div>

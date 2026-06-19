@@ -79,6 +79,35 @@ function applyCustomSettings() {
   if (auth) auth.innerText = APP_NAME;
 }
 setTimeout(applyCustomSettings, 100);
+
+// === GREETING SYSTEM ===
+function updateGreeting() {
+  const hour = new Date().getHours();
+  const helloEl = document.getElementById("greetingHello");
+  const subEl = document.getElementById("greetingSub");
+  if (!helloEl || !subEl) return;
+  
+  let hello, sub;
+  if (hour >= 5 && hour < 12) {
+    hello = "Chào buổi sáng,";
+    sub = "Làm đi mấy cu em!";
+  } else if (hour >= 12 && hour < 14) {
+    hello = "Buổi trưa rồi cu,";
+    sub = "Làm cho xong rồi về!";
+  } else if (hour >= 14 && hour < 18) {
+    hello = "Chào buổi chiều,";
+    sub = "Roán đi sắp được về rồi!";
+  } else if (hour >= 18 && hour < 22) {
+    hello = "Chào buổi tối,";
+    sub = "Dề tắm miếng rồi mai làm tiếp :)))!";
+  } else {
+    hello = "Khuya rồi,";
+    sub = "Giờ ni vô chấm công làm đ gì =)))??!";
+  }
+  helloEl.innerText = hello;
+  subEl.innerText = sub;
+}
+updateGreeting();
 const CLOUD_NAME = "do48qpmut"; 
 const UPLOAD_PRESET = "fora";
 
@@ -687,6 +716,8 @@ $("#btnCloseSettingsBottom").onclick = () => {
   }
 
   applyCustomSettings();
+  const lblUserName = $("#lblUserName");
+  if (lblUserName) lblUserName.innerText = APP_NAME;
   render();
   toggleSettings(false);
   showToast("Đã lưu cài đặt!", "success");
@@ -939,7 +970,7 @@ onAuthStateChanged(auth, (user) => {
     if (authScreen) authScreen.style.display = "none";
     if (mainApp) mainApp.style.display = "block";
     const lblUserName = $("#lblUserName");
-    if (lblUserName) lblUserName.innerText = user.displayName || user.email.split('@')[0];
+    if (lblUserName) lblUserName.innerText = APP_NAME || user.displayName || user.email.split('@')[0];
     const lblUserRole = $("#lblUserRole");
     if (lblUserRole) lblUserRole.innerText = "KIN";
     render();
