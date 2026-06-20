@@ -514,14 +514,18 @@ body {
   outline: none;
 }
 input[type="checkbox"] {
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  margin: 0;
-  accent-color: var(--primary);
-  cursor: pointer;
-  border: 2px solid #000;
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  accent-color: var(--primary) !important;
+  cursor: pointer !important;
+  background: initial !important;
+  border: initial !important;
   box-shadow: none !important;
+  border-radius: initial !important;
+  -webkit-appearance: checkbox !important;
+  appearance: checkbox !important;
   transform: none !important;
 }.field-group input:focus { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #000; }
 
