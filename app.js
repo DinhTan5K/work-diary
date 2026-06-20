@@ -93,7 +93,7 @@ function updateGreeting() {
     sub = "Làm đi mấy cu em!";
   } else if (hour >= 12 && hour < 14) {
     hello = "Buổi trưa rồi cu,";
-    sub = "Làm cho xong rồi về!";
+    sub = "Đớp gì chưa mà làm vậy cu!";
   } else if (hour >= 14 && hour < 18) {
     hello = "Chào buổi chiều,";
     sub = "Roán đi sắp được về rồi!";
@@ -716,8 +716,6 @@ $("#btnCloseSettingsBottom").onclick = () => {
   }
 
   applyCustomSettings();
-  const lblUserName = $("#lblUserName");
-  if (lblUserName) lblUserName.innerText = APP_NAME;
   render();
   toggleSettings(false);
   showToast("Đã lưu cài đặt!", "success");
@@ -970,7 +968,7 @@ onAuthStateChanged(auth, (user) => {
     if (authScreen) authScreen.style.display = "none";
     if (mainApp) mainApp.style.display = "block";
     const lblUserName = $("#lblUserName");
-    if (lblUserName) lblUserName.innerText = APP_NAME || user.displayName || user.email.split('@')[0];
+    if (lblUserName) lblUserName.innerText = user.displayName || user.email.split('@')[0];
     const lblUserRole = $("#lblUserRole");
     if (lblUserRole) lblUserRole.innerText = "KIN";
     render();

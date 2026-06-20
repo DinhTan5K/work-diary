@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>KAITO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#0f0c29">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <link id="favicon" rel="shortcut icon" href="logo.png" type="image/x-icon">
+  <link id="appleIcon" rel="apple-touch-icon" href="logo.png">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+
+<!-- === LOADING SCREEN === -->
+<div id="loadingScreen" style="display: flex; height: 100vh; width: 100vw; align-items: center; justify-content: center; flex-direction: column;">
+  <img src="logo.png" alt="Logo" class="logo-img" style="width: 80px; height: 80px; border-radius: 20px; animation: pulse 1.5s infinite;">
+  <div id="appNameLoading" style="margin-top: 15px; font-family: var(--font-head); font-weight: 800; font-size: 1.5rem; letter-spacing: 2px;">KAITO</div>
+</div>
+
+<style>
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+</style>
+
+<!-- === AUTH SCREEN === -->
+<div id="authScreen" class="auth-wrapper" style="display: none;">
+  <div class="auth-card">
+    <div class="brand auth-brand">
+      <img src="logo.png" alt="Logo" class="logo-img">
+      <div id="appNameAuth" class="logo-text">KAITO</div>
+    </div>
+    
+    <div class="auth-tabs">
+      <button id="btnTabLogin" class="auth-tab-btn active">Đăng Nhập</button>
+      <button id="btnTabRegister" class="auth-tab-btn">Đăng Ký</button>
+    </div>
+    <form id="authForm" class="auth-form">
+      <div class="field-group full">
+        <label>Tên đăng nhập</label>
+        <input type="text" id="authUsername" placeholder="Ví dụ: dinhtan" required autocomplete="off">
+      </div>
+      <div class="field-group full">
+        <label>Mật khẩu</label>
+        <input type="password" id="authPassword" placeholder="Nhập mật khẩu..." required>
+      </div>
+      
+      <button type="submit" id="btnAuthSubmit" class="btn-primary" style="width: 100%; margin-top: 10px;">Đăng Nhập</button>
+    </form>
+  </div>
+</div>
+
+<div class="app-container" id="mainApp" style="display: none;">
+  
+  <header class="header-panel">
+    <div class="brand">
+      <img src="logo.png" alt="Logo" class="logo-img">
+    </div>
+    <div class="header-actions">
+      <button id="btnRescue" class="btn-icon" style="color: #ffaa00;" title="Cứu hộ data"><i class="fa-solid fa-life-ring"></i></button>
+      <button id="btnSettings" class="btn-icon"><i class="fa-solid fa-sliders"></i></button>
+      <button id="btnExport" class="btn-icon"><i class="fa-solid fa-file-csv"></i></button>
+      <button id="btnLogout" class="btn-icon" style="color: #ff4d4f;"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </header>
+
+  <div class="tabs-nav">
+    <button class="tab-btn active" data-target="tab-overview"><i class="fa-solid fa-chart-pie"></i></button>
+    <button class="tab-btn" data-target="tab-diary"><i class="fa-solid fa-book"></i></button>
+    <button class="tab-btn" data-target="tab-schedule"><i class="fa-solid fa-calendar-days"></i></button>
+  </div>
+
+  <!-- TAB TỔNG QUAN -->
+  <div id="tab-overview" class="tab-content active">
+    <h3 class="section-title" id="overviewCurrentTitle">Tháng hiện tại</h3>
+    <section class="overview-grid">
+      <div class="overview-card total-money">
+        <div class="o-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+        <div class="o-info" style="flex: 1;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span class="o-label">THU NHẬP</span>
+            <button class="btn-eye btn-toggle-privacy" title="Ẩn/Hiện số tiền" style="width: 24px; height: 24px; font-size: 0.85rem; margin-top: -4px;">
+              <i class="fa-solid fa-eye-slash"></i>
+            </button>
+          </div>
+          <span class="o-value money-text" id="overviewMonthMoney">0 ₫</span>
+        </div>
+      </div>
+      <div class="overview-card total-hours">
+        <div class="o-icon"><i class="fa-solid fa-clock"></i></div>
+        <div class="o-info">
+          <span class="o-label">GIỜ LÀM</span>
+          <span class="o-value"><span id="overviewMonthHours">0</span> <small>hrs</small></span>
+        </div>
+      </div>
+      <div class="overview-card total-days">
+        <div class="o-icon"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="o-info">
+          <span class="o-label">SỐ CÔNG</span>
+          <span class="o-value"><span id="overviewMonthDays">0</span> <small>công</small></span>
+        </div>
+      </div>
+    </section>
+
+    <h3 class="section-title" style="margin-top: 24px;">Lịch sử các tháng</h3>
+    <div id="overviewMonthList" style="display: flex; flex-direction: column; gap: 12px;">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+
+  <!-- TAB NHẬT KÝ -->
+  <div id="tab-diary" class="tab-content">
+    <div class="month-selector">
+    <button id="btnPrevMonth" class="btn-icon-small"><i class="fa-solid fa-chevron-left"></i></button>
+    <h3 id="lblCurrentMonth">Tháng 6/2026</h3>
+    <button id="btnNextMonth" class="btn-icon-small"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+
+  <section class="stats-grid">
+    <!-- Card 1: Giờ làm -->
+    <div class="stat-card bento-hours">
+      <div class="stat-label">Giờ làm</div>
+      <div class="ring-center">
+        <div class="progress-wrapper">
+          <svg class="badge-icon" xmlns="http://www.w3.org/2000/svg" fill="#fff" viewBox="0 0 100 100">
+            <polygon points="96.0,50.0 88.3,57.6 92.5,67.6 82.4,71.7 82.5,82.5 71.7,82.4 67.6,92.5 57.6,88.3 50.0,96.0 42.4,88.3 32.4,92.5 28.3,82.4 17.5,82.5 17.6,71.7 7.5,67.6 11.7,57.6 4.0,50.0 11.7,42.4 7.5,32.4 17.6,28.3 17.5,17.5 28.3,17.6 32.4,7.5 42.4,11.7 50.0,4.0 57.6,11.7 67.6,7.5 71.7,17.6 82.5,17.5 82.4,28.3 92.5,32.4 88.3,42.4" fill="#fff" stroke="#000" stroke-width="4" stroke-linejoin="miter"/>
+          </svg>
+          <div class="ring-text">
+            <span id="monthHours">0</span>
+            <small>HRS</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Số công -->
+    <div class="stat-card bento-days">
+      <div class="stat-label">Số công</div>
+      <div class="ring-center">
+        <div class="progress-wrapper">
+          <svg class="badge-icon" xmlns="http://www.w3.org/2000/svg" fill="#fff" viewBox="0 0 100 100">
+            <polygon points="96.0,50.0 88.3,57.6 92.5,67.6 82.4,71.7 82.5,82.5 71.7,82.4 67.6,92.5 57.6,88.3 50.0,96.0 42.4,88.3 32.4,92.5 28.3,82.4 17.5,82.5 17.6,71.7 7.5,67.6 11.7,57.6 4.0,50.0 11.7,42.4 7.5,32.4 17.6,28.3 17.5,17.5 28.3,17.6 32.4,7.5 42.4,11.7 50.0,4.0 57.6,11.7 67.6,7.5 71.7,17.6 82.5,17.5 82.4,28.3 92.5,32.4 88.3,42.4" fill="#fff" stroke="#000" stroke-width="4" stroke-linejoin="miter"/>
+          </svg>
+          <div class="ring-text">
+            <span id="monthDays">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="mascot-mini" id="mascotText">Cố lên!</div>
+    </div>
+
+    <!-- Card 3: Thu nhập -->
+    <div class="stat-card bento-money">
+      <div class="stat-label-row">
+        <div class="stat-label">Thu nhập</div>
+        <button class="btn-eye btn-toggle-privacy" title="Ẩn/Hiện số tiền">
+          <i class="fa-solid fa-eye-slash"></i>
+        </button>
+      </div>
+      <span class="value money-text" id="monthMoney">******</span>
+      <span class="sub-text" id="totalMoney">Tổng: ******</span>
+    </div>
+  </section>
+  
+  <main id="timeline" class="timeline-list">
+      <div id="skeletonLoader">
+         <div class="skeleton-card"></div>
+         <div class="skeleton-card"></div>
+      </div>
+    </main>
+
+    <button id="fab" class="fab-main"><i class="fa-solid fa-plus"></i></button>
+  </div>
+
+  <div id="tab-schedule" class="tab-content">
+    <div class="schedule-header">
+      <h3>Lịch trình sắp tới</h3>
+      <p style="color:var(--text-muted); font-size: 0.9rem;">Những ca làm chưa hoàn thành</p>
+    </div>
+    
+    <main id="schedule-timeline" class="timeline-list">
+      <!-- Schedule items will be rendered here -->
+    </main>
+
+    <button id="fab-schedule" class="fab-main"><i class="fa-solid fa-plus"></i></button>
+  </div>
+
+</div>
+
+<div id="logModal" class="modal-backdrop hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Ca làm việc mới</h3>
+      <button id="btnCloseTop" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+
+        <div class="field-group full">
+    <label>Ngày làm</label>
+    <input type="date" id="workDate">
+  </div>
+
+      <div class="field-group full">
+
+  <div class="shift-grid" id="shiftGrid">
+    <!-- Nút ca làm sẽ được render bằng JS -->
+  </div>
+
+  <div id="customShift" style="display:none; margin-top:15px;">
+
+  <div class="field-group">
+    <label>Bắt đầu</label>
+    <input type="time" id="customStart">
+  </div>
+
+  <div class="field-group">
+    <label>Kết thúc</label>
+    <input type="time" id="customEnd">
+  </div>
+  
+  <div class="field-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
+    <input type="checkbox" id="chkSavePreset" style="width: auto; margin: 0; padding: 0; cursor: pointer;">
+    <label for="chkSavePreset" style="margin: 0; text-transform: none; font-size: 0.85rem; color: var(--accent); cursor: pointer; user-select: none;">Ghi nhớ ca này làm mẫu</label>
+  </div>
+
+</div>
+
+</div>
+      <div class="field-group full">
+        <label>Ghi chú</label> <input type="text" id="inpNote" placeholder="Tên công việc...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="btnCancel" class="btn-ghost">Hủy</button>
+      <button id="btnSave" class="btn-primary">Lưu lại</button>
+    </div>
+  </div>
+</div>
+<!-- === SETTINGS MODAL === -->
+<div id="settingsModal" class="modal-backdrop hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Cài đặt</h3>
+      <button id="btnCloseSettings" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Theme -->
+      <div class="settings-section">
+        <div class="settings-label"><i class="fa-solid fa-palette"></i> Chủ đề màu sắc</div>
+        <div class="theme-grid" id="themeGrid">
+          <button class="theme-dot" data-theme="default" title="Midnight">
+            <span class="dot-preview" style="background: linear-gradient(135deg, #1a2926, #221d2e);"></span>
+            <span class="dot-name">Midnight</span>
+          </button>
+          <button class="theme-dot" data-theme="ocean" title="Ocean">
+            <span class="dot-preview" style="background: linear-gradient(135deg, #0a1628, #132744);"></span>
+            <span class="dot-name">Ocean</span>
+          </button>
+          <button class="theme-dot" data-theme="rose" title="Rosé">
+            <span class="dot-preview" style="background: linear-gradient(135deg, #E9A1B3, #94676E);"></span>
+            <span class="dot-name">Rosé</span>
+          </button>
+          <button class="theme-dot" data-theme="forest" title="Forest">
+            <span class="dot-preview" style="background: linear-gradient(135deg, #0f1f15, #1a2e1e);"></span>
+            <span class="dot-name">Forest</span>
+          </button>
+          <button class="theme-dot" data-theme="sunset" title="Sunset">
+            <span class="dot-preview" style="background: linear-gradient(135deg, #2b1a0e, #3a2010);"></span>
+            <span class="dot-name">Sunset</span>
+          </button>
+          <button class="theme-dot" data-theme="amoled" title="AMOLED">
+            <span class="dot-preview" style="background: #000000; border: 1px solid #333;"></span>
+            <span class="dot-name">AMOLED</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Wage -->
+      <div class="settings-section">
+        <div class="settings-label"><i class="fa-solid fa-money-bill-wave"></i> Lương / giờ</div>
+        <div class="wage-input-row">
+          <input type="number" id="inpWage" class="wage-input" placeholder="25000">
+          <span class="wage-unit">VNĐ/h</span>
+        </div>
+      </div>
+
+      <!-- Custom Logo -->
+      <div class="settings-section">
+        <div class="settings-label"><i class="fa-solid fa-image"></i> Ảnh đại diện</div>
+        <div class="logo-change-row">
+          <div class="logo-preview-wrap" id="logoPreviewWrap">
+            <img src="logo.png" alt="Logo" class="logo-preview-img" id="logoPreviewImg">
+            <div class="logo-overlay"><i class="fa-solid fa-camera"></i></div>
+          </div>
+          <div class="logo-change-info">
+            <span class="logo-change-hint">Bấm vào ảnh để thay đổi</span>
+            <button id="btnResetLogo" class="btn-reset-logo"><i class="fa-solid fa-rotate-left"></i> Khôi phục mặc định</button>
+          </div>
+          <input type="file" id="inpLogoFile" accept="image/*" style="display: none;">
+        </div>
+      </div>
+
+      <!-- Goals & General Settings -->
+      <div class="settings-section">
+        <div class="settings-label"><i class="fa-solid fa-bullseye"></i> Mục tiêu & Hiển thị</div>
+        <div class="field-group full" style="margin-bottom: 12px;">
+          <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Tên hiển thị</label>
+          <input type="text" id="inpAppName" class="wage-input" style="background: var(--card-bg); border-radius: 8px; font-size: 1rem; padding: 12px;" placeholder="KAITO">
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <div class="field-group full">
+            <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Mục tiêu giờ/tháng</label>
+            <input type="number" id="inpTargetHours" class="wage-input" style="background: var(--card-bg); border-radius: 8px; font-size: 1rem; padding: 12px;" placeholder="200">
+          </div>
+          <div class="field-group full">
+            <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Mục tiêu công/tháng</label>
+            <input type="number" id="inpTargetDays" class="wage-input" style="background: var(--card-bg); border-radius: 8px; font-size: 1rem; padding: 12px;" placeholder="27">
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button id="btnCloseSettingsBottom" class="btn-primary" style="flex:1;">Xong</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script>
+  (function(){
+    var name = localStorage.getItem('kaito_app_name');
+    if(name) {
+      var el1 = document.getElementById('appNameLoading'); if(el1) el1.innerText = name;
+      var el2 = document.getElementById('appNameAuth'); if(el2) el2.innerText = name;
+    }
+    var logo = localStorage.getItem('kaito_custom_logo');
+    if(logo) {
+      var imgs = document.querySelectorAll('.logo-img');
+      for(var i=0; i<imgs.length; i++) imgs[i].src = logo;
+      var favicon = document.getElementById('favicon'); if(favicon) favicon.href = logo;
+      var appleIcon = document.getElementById('appleIcon'); if(appleIcon) appleIcon.href = logo;
+    }
+    var targetDays = localStorage.getItem('kaito_target_days');
+    if(targetDays) {
+      var td = document.getElementById('monthTargetDays');
+      if(td) td.innerText = '/' + targetDays;
+    }
+  })();
+</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
