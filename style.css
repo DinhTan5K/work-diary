@@ -113,6 +113,42 @@ body {
   opacity: 0.8;
 }
 
+
+
+/* --- RPG Sprite Pet --- */
+.brendan-pet {
+  width: 28px; /* 168px / 6 cột */
+  height: 28px; /* 112px / 4 hàng */
+  background-image: url('brendan.png');
+  background-repeat: no-repeat;
+  
+  position: fixed;
+  bottom: calc(35px + env(safe-area-inset-bottom, 0px)); /* Đứng ngay trên thanh Nav */
+  left: 0; /* JS sẽ quản lý tọa độ này */
+  z-index: 9999;
+  
+  /* Cắt ảnh qua 6 bước (168px) */
+  animation: spriteWalk 0.8s steps(6) infinite;
+  
+  /* Kích thước gốc 28px là rất bé, ta dùng scale để phóng to nó lên 2.5 lần */
+  transform-origin: bottom center;
+  transform: scale(2.5);
+  
+  /* ĐẶC BIỆT QUAN TRỌNG: Lọc ảnh kiểu Pixel Art để khi phóng to không bị mờ/nhòe */
+  image-rendering: pixelated; 
+  pointer-events: none;
+}
+
+/* Di chuyển khung ngang 168px */
+@keyframes spriteWalk {
+  from { background-position-x: 0px; }
+  to { background-position-x: -168px; }
+}
+
+/* Các class định vị Y (hàng) */
+.walk-left { background-position-y: -28px !important; } /* Hàng 2 (28px * 1) */
+.walk-right { background-position-y: -84px !important; } /* Hàng 4 (28px * 3) */
+
 /* --- Bottom Navigation Bar --- */
 .tabs-nav {
   position: fixed;
