@@ -117,37 +117,81 @@ body {
 
 /* --- RPG Sprite Pet --- */
 .brendan-pet {
-  width: 28px; /* 168px / 6 cột */
-  height: 28px; /* 112px / 4 hàng */
+  width: 70px; 
+  height: 70px; 
   background-image: url('brendan.png');
   background-repeat: no-repeat;
+  background-size: 420px 280px; /* 6x 70 ngang, 4x 70 dọc */
   
   position: fixed;
-  bottom: calc(35px + env(safe-area-inset-bottom, 0px)); /* Đứng ngay trên thanh Nav */
-  left: 0; /* JS sẽ quản lý tọa độ này */
+  top: 0; left: 0; 
   z-index: 9999;
   
-  /* Cắt ảnh qua 6 bước (168px) */
   animation: spriteWalk 0.8s steps(6) infinite;
-  
-  /* Kích thước gốc 28px là rất bé, ta dùng scale để phóng to nó lên 2.5 lần */
-  transform-origin: bottom center;
-  transform: scale(2.5);
-  
-  /* ĐẶC BIỆT QUAN TRỌNG: Lọc ảnh kiểu Pixel Art để khi phóng to không bị mờ/nhòe */
   image-rendering: pixelated; 
   pointer-events: none;
 }
 
-/* Di chuyển khung ngang 168px */
 @keyframes spriteWalk {
   from { background-position-x: 0px; }
-  to { background-position-x: -168px; }
+  to { background-position-x: -420px; }
 }
 
-/* Các class định vị Y (hàng) */
-.walk-left { background-position-y: -28px !important; } /* Hàng 2 (28px * 1) */
-.walk-right { background-position-y: -84px !important; } /* Hàng 4 (28px * 3) */
+.walk-down { background-position-y: 0px !important; }   
+.walk-left { background-position-y: -70px !important; } 
+.walk-up { background-position-y: -140px !important; }   
+.walk-right { background-position-y: -210px !important; } 
+
+/* --- Wally Sprite Pet (Brendan 2) --- */
+.wally-pet {
+  width: 70px; 
+  height: 70px; 
+  background-image: url('brendan2.png');
+  background-repeat: no-repeat;
+  background-size: 280px 280px; /* 4x 70 ngang, 4x 70 dọc */
+  
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 9998; 
+  
+  animation: wallyWalk 0.8s steps(4) infinite;
+  image-rendering: pixelated; 
+  pointer-events: none;
+}
+
+@keyframes wallyWalk {
+  from { background-position-x: 0px; }
+  to { background-position-x: -280px; }
+}
+
+.wally-walk-down { background-position-y: 0px !important; }   
+.wally-walk-left { background-position-y: -70px !important; } 
+.wally-walk-right { background-position-y: -140px !important; } 
+.wally-walk-up { background-position-y: -210px !important; }   
+
+/* --- Tóc xanh lá (Brendan 3) --- */
+.brendan3-pet {
+  width: 70px; 
+  height: 70px; 
+  background-image: url('brendan3.png');
+  background-repeat: no-repeat;
+  background-size: 280px 280px;
+  
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 9997; 
+  
+  animation: wallyWalk 0.8s steps(4) infinite; /* Dùng chung animation 4 bước của Wally */
+  image-rendering: pixelated; 
+  pointer-events: none;
+}
+
+.brendan3-walk-down { background-position-y: 0px !important; }   
+.brendan3-walk-left { background-position-y: -70px !important; } 
+.brendan3-walk-right { background-position-y: -140px !important; } 
+.brendan3-walk-up { background-position-y: -210px !important; }
+
+
 
 /* --- Bottom Navigation Bar --- */
 .tabs-nav {
