@@ -67,18 +67,19 @@
     <div class="header-actions">
       <button id="btnRescue" class="btn-icon" style="color: #ffaa00;" title="Cứu hộ data"><i class="fa-solid fa-life-ring"></i></button>
       <button id="btnSettings" class="btn-icon"><i class="fa-solid fa-sliders"></i></button>
-      <button id="btnExport" class="btn-icon"><i class="fa-solid fa-file-csv"></i></button>
       <button id="btnLogout" class="btn-icon" style="color: #ff4d4f;"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </header>
 
-  <!-- GREETING SECTION -->
-  <div class="greeting-section" id="greetingSection">
-    <div class="greeting-text">
-      <span class="greeting-hello" id="greetingHello">Xin chào,</span>
-      <span class="greeting-name" id="lblUserName">bạn</span>
+  <!-- GREETING SECTION (POPUP) -->
+  <div class="greeting-popup" id="greetingSection" style="display: none;">
+    <div style="flex: 1;">
+      <div class="greeting-text">
+        <span class="greeting-hello" id="greetingHello">Xin chào,</span>
+        <span class="greeting-name" id="lblUserName">bạn</span>
+      </div>
+      <div class="greeting-sub" id="greetingSub">Chúc bạn một ngày làm việc hiệu quả!</div>
     </div>
-    <div class="greeting-sub" id="greetingSub">Chúc bạn một ngày làm việc hiệu quả!</div>
   </div>
 
 
@@ -100,32 +101,33 @@
 
   <!-- TAB TỔNG QUAN -->
   <div id="tab-overview" class="tab-content active">
-    <h3 class="section-title" id="overviewCurrentTitle">Tháng hiện tại</h3>
-    <section class="overview-grid">
-      <div class="overview-card total-money">
-        <div class="o-icon"><i class="fa-solid fa-sack-dollar"></i></div>
-        <div class="o-info" style="flex: 1;">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span class="o-label">THU NHẬP</span>
-            <button class="btn-eye btn-toggle-privacy" title="Ẩn/Hiện số tiền" style="width: 24px; height: 24px; font-size: 0.85rem; margin-top: -4px;">
-              <i class="fa-solid fa-eye-slash"></i>
-            </button>
+    
+    <section class="rpg-hero-card">
+      <div class="rpg-hero-header">
+        <div class="rpg-hero-title-wrap">
+          <i class="fa-solid fa-calendar-day"></i>
+          <span class="rpg-hero-title" id="overviewCurrentTitle">Tháng hiện tại</span>
+        </div>
+      </div>
+      <div class="rpg-hero-body">
+        <div class="rpg-hero-money-wrap">
+          <div style="display:flex; align-items:center; gap: 12px;">
+            <i class="fa-solid fa-coins" style="font-size: 2rem;"></i>
+            <div class="rpg-hero-money money-text" id="overviewMonthMoney">0 ₫</div>
           </div>
-          <span class="o-value money-text" id="overviewMonthMoney">0 ₫</span>
+          <button class="btn-eye btn-toggle-privacy" title="Ẩn/Hiện số tiền">
+            <i class="fa-solid fa-eye-slash"></i>
+          </button>
         </div>
-      </div>
-      <div class="overview-card total-hours">
-        <div class="o-icon"><i class="fa-solid fa-clock"></i></div>
-        <div class="o-info">
-          <span class="o-label">GIỜ LÀM</span>
-          <span class="o-value"><span id="overviewMonthHours">0</span> <small>hrs</small></span>
-        </div>
-      </div>
-      <div class="overview-card total-days">
-        <div class="o-icon"><i class="fa-solid fa-calendar-check"></i></div>
-        <div class="o-info">
-          <span class="o-label">SỐ CÔNG</span>
-          <span class="o-value"><span id="overviewMonthDays">0</span> <small>công</small></span>
+        <div class="rpg-hero-stats">
+          <div class="rpg-stat-item">
+            <i class="fa-solid fa-hourglass-half"></i>
+            <div><span id="overviewMonthHours">0</span> <small>hrs</small></div>
+          </div>
+          <div class="rpg-stat-item">
+            <i class="fa-solid fa-hammer"></i>
+            <div><span id="overviewMonthDays">0</span> <small>công</small></div>
+          </div>
         </div>
       </div>
     </section>

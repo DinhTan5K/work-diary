@@ -85,29 +85,46 @@ function updateGreeting() {
   const hour = new Date().getHours();
   const helloEl = document.getElementById("greetingHello");
   const subEl = document.getElementById("greetingSub");
-  if (!helloEl || !subEl) return;
+  const sectionEl = document.getElementById("greetingSection");
+  if (!helloEl || !subEl || !sectionEl) return;
   
-  let hello, sub;
+  let hello, sub, slot;
   if (hour >= 5 && hour < 12) {
     hello = "Chào buổi sáng,";
     sub = "Làm đi mấy cu em!";
+    slot = "morning";
   } else if (hour >= 12 && hour < 14) {
     hello = "Buổi trưa rồi cu,";
-    sub = "Đớp gì chưa mà làm vậy cu!";
+    sub = "Kiếm chi đớp đi rồi làm cu!";
+    slot = "noon";
   } else if (hour >= 14 && hour < 18) {
     hello = "Chào buổi chiều,";
     sub = "Roán đi sắp được về rồi!";
+    slot = "afternoon";
   } else if (hour >= 18 && hour < 22) {
     hello = "Chào buổi tối,";
     sub = "Dề tắm miếng rồi mai làm tiếp :)))!";
+    slot = "evening";
   } else {
     hello = "Khuya rồi,";
     sub = "Giờ ni vô chấm công làm đ gì =)))??!";
+    slot = "night";
   }
   helloEl.innerText = hello;
   subEl.innerText = sub;
+
+  // Luôn hiển thị popup mỗi khi vào web
+  sectionEl.style.display = "flex";
+  sectionEl.classList.remove("hide");
+  
+  // Tự động ẩn sau 3 giây
+  setTimeout(() => {
+    sectionEl.classList.add("hide");
+    setTimeout(() => sectionEl.style.display = "none", 400);
+  }, 3000);
 }
 updateGreeting();
+
 const CLOUD_NAME = "do48qpmut"; 
 const UPLOAD_PRESET = "fora";
 
@@ -543,7 +560,7 @@ async function render() {
       const mTotalMoney = mTotalHours * USER_WAGE;
       
       const div = document.createElement("div");
-      div.className = "overview-month-summary";
+      div.className = "rpg-history-card";
       div.onclick = () => {
         viewMonth = mInfo.month;
         viewYear = mInfo.year;
@@ -553,16 +570,9 @@ async function render() {
       };
       
       div.innerHTML = `
-        <div class="oms-left">
-          <div class="oms-month">Tháng ${k}</div>
-          <div class="oms-stats">
-            <span>${mInfo.days.size} công</span> • 
-            <span>${mTotalHours.toFixed(1)} hrs</span>
-          </div>
-        </div>
-        <div class="oms-right" style="background: transparent; color: var(--primary); font-size: 1.15rem; width: auto; font-weight: 800; padding-right: 8px;">
-          <span class="money-text">${isMoneyVisible ? fmtMoney(mTotalMoney) : '******'}</span>
-        </div>
+        <i class="fa-solid fa-scroll" style="font-size: 1.2rem; margin-right: 12px;"></i>
+        <span class="rpg-history-title" style="flex: 1;">Tháng ${k}</span>
+        <i class="fa-solid fa-chevron-right" style="font-size: 0.9rem;"></i>
       `;
       overviewList.appendChild(div);
     });
@@ -826,28 +836,6 @@ $("#btnNextMonth").onclick = () => {
   viewMonth++;
   if(viewMonth > 11) { viewMonth = 0; viewYear++; }
   render();
-};
-
-$("#btnExport").onclick = async () => {
-  const q = query(COL, where("uid", "==", auth.currentUser.uid));
-  const snap = await getDocs(q);
-  const logs = snap.docs.map(d => d.data()).sort((a,b) => b.start - a.start);
-  let csv = "Ngày,Bắt đầu,Kết thúc,Thời gian (h),Lương/h,Tổng tiền,Ghi chú\n";
-  logs.forEach(l => {
-    const d = new Date(l.start).toLocaleDateString('vi-VN');
-    const st = new Date(l.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
-    const et = new Date(l.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
-    const h = parseFloat((l.duration / 3600000).toFixed(1));
-    const n = (l.note || "").replace(/,/g, " ");
-    const money = Math.round(h * USER_WAGE);
-    csv += `${d},${st},${et},${h},${USER_WAGE},${money},${n}\n`;
-  });
-  const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "kaito_logs.csv";
-  a.click();
 };
 
 const btnRescue = $("#btnRescue");
