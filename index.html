@@ -142,7 +142,13 @@
   <div id="tab-diary" class="tab-content">
     <div class="month-selector">
     <button id="btnPrevMonth" class="btn-icon-small"><i class="fa-solid fa-chevron-left"></i></button>
-    <h3 id="lblCurrentMonth">Tháng 6/2026</h3>
+    <div style="display:flex; flex-direction:column; align-items:center; gap: 5px;">
+      <h3 id="lblCurrentMonth">Tháng 6/2026</h3>
+      <div class="view-toggle">
+        <button id="btnViewTimeline" class="view-btn active"><i class="fa-solid fa-list"></i></button>
+        <button id="btnViewCalendar" class="view-btn"><i class="fa-solid fa-calendar-day"></i></button>
+      </div>
+    </div>
     <button id="btnNextMonth" class="btn-icon-small"><i class="fa-solid fa-chevron-right"></i></button>
   </div>
 
@@ -197,6 +203,10 @@
          <div class="skeleton-card"></div>
          <div class="skeleton-card"></div>
       </div>
+    </main>
+
+    <main id="calendar-view" class="calendar-wrapper" style="display:none; padding-bottom: 80px;">
+      <!-- Lưới lịch sẽ được render bằng JS -->
     </main>
 
     <button id="fab" class="fab-main"><i class="fa-solid fa-plus"></i></button>
@@ -268,6 +278,20 @@
     </div>
   </div>
 </div>
+
+<!-- === DAY DETAIL MODAL === -->
+<div id="dayDetailModal" class="modal-backdrop hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="dayDetailTitle">Chi tiết ngày</h3>
+      <button id="btnCloseDayDetail" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+      <div id="dayDetailList" class="timeline-list" style="padding: 0;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- === SETTINGS MODAL === -->
 <div id="settingsModal" class="modal-backdrop hidden">
   <div class="modal-content">
@@ -329,6 +353,17 @@
             <button id="btnResetLogo" class="btn-reset-logo"><i class="fa-solid fa-rotate-left"></i> Khôi phục mặc định</button>
           </div>
           <input type="file" id="inpLogoFile" accept="image/*" style="display: none;">
+        </div>
+      </div>
+
+      <!-- Sprites Toggle -->
+      <div class="settings-section">
+        <div class="settings-label"><i class="fa-solid fa-ghost"></i> Hiển thị thú cưng</div>
+        <div class="field-group full" style="margin-bottom: 0;">
+          <label for="chkShowSprites" style="display: flex; align-items: center; gap: 8px; margin: 0; text-transform: none; font-size: 0.95rem; cursor: pointer;">
+            <input type="checkbox" id="chkShowSprites" checked style="width: 24px; height: 24px; margin: 0; padding: 0; cursor: pointer;">
+            Bật thú cưng chạy quanh màn hình
+          </label>
         </div>
       </div>
 

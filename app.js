@@ -139,6 +139,7 @@ let editModeId = null;
 
 let viewMonth = new Date().getMonth();
 let viewYear = new Date().getFullYear();
+let diaryViewMode = localStorage.getItem('kaito_diary_view') || 'timeline';
 
 // --- DYNAMIC SHIFTS ---
 const DEFAULT_SHIFTS = [
@@ -440,6 +441,7 @@ window.checkIn = async (id, start, end, duration) => {
 // --- RENDER ---
 async function render() {
   const tl = $("#timeline");
+  const calView = $("#calendar-view");
   const skel = $("#skeletonLoader");
   if(!skel || !tl.contains(skel)) tl.innerHTML = `<div id="skeletonLoader"><div class="skeleton-card"></div></div>`;
 
@@ -448,6 +450,8 @@ async function render() {
   const logs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.start - a.start);
 
   tl.innerHTML = ""; 
+  if (calView) calView.innerHTML = "";
+  
   let mHours = 0, mMoney = 0, totalDurationAll = 0, totalMoneyAll = 0;
   
   logs.forEach(l => { totalDurationAll += l.duration || 0; });
@@ -459,6 +463,18 @@ async function render() {
 
   const monthKey = `Tháng ${viewMonth + 1}/${viewYear}`;
   $("#lblCurrentMonth").innerText = monthKey;
+
+  // View Mode Logic
+  if (diaryViewMode === 'calendar') {
+    tl.style.display = 'none';
+    if (calView) {
+      calView.style.display = 'block';
+      renderCalendar(filteredLogs, viewMonth, viewYear, calView);
+    }
+  } else {
+    if (calView) calView.style.display = 'none';
+    tl.style.display = ''; // Clear inline display so it uses CSS default
+  }
 
   if (filteredLogs.length === 0) {
     tl.innerHTML = `<div style="text-align:center; padding: 40px 20px; color: var(--text-muted);">Không có ca làm nào trong ${monthKey}.</div>`;
@@ -687,6 +703,7 @@ $("#btnSettings").onclick = () => {
   const inpAppName = $("#inpAppName"); if(inpAppName) inpAppName.value = APP_NAME;
   const inpTargetHours = $("#inpTargetHours"); if(inpTargetHours) inpTargetHours.value = TARGET_HOURS;
   const inpTargetDays = $("#inpTargetDays"); if(inpTargetDays) inpTargetDays.value = TARGET_DAYS;
+  const chkShowSprites = $("#chkShowSprites"); if(chkShowSprites) chkShowSprites.checked = localStorage.getItem('kaito_show_sprites') !== 'false';
   
   // Highlight active theme
   const saved = localStorage.getItem('kaito_theme') || 'default';
@@ -724,6 +741,17 @@ $("#btnCloseSettingsBottom").onclick = () => {
     TARGET_DAYS = td;
     localStorage.setItem('kaito_target_days', TARGET_DAYS);
   }
+  
+  const chkShowSprites = $("#chkShowSprites");
+  if (chkShowSprites) {
+    const wasShowing = localStorage.getItem('kaito_show_sprites') !== 'false';
+    const isShowing = chkShowSprites.checked;
+    localStorage.setItem('kaito_show_sprites', isShowing);
+    if (wasShowing !== isShowing) {
+      showToast("Tải lại trang để áp dụng cài đặt thú cưng!", "success");
+    }
+  }
+
 
   applyCustomSettings();
   render();
@@ -968,3 +996,165 @@ onAuthStateChanged(auth, (user) => {
     $("#btnAuthSubmit").innerText = isRegistering ? "Đăng Ký" : "Đăng Nhập";
   }
 });
+
+// === CALENDAR LOGIC ===
+function renderCalendar(logs, month, year, container) {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  
+  // Create Header
+  const header = document.createElement("div");
+  header.className = "calendar-header";
+  ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].forEach(day => {
+    header.innerHTML += `<div>${day}</div>`;
+  });
+  container.appendChild(header);
+
+  // Create Grid
+  const grid = document.createElement("div");
+  grid.className = "calendar-grid";
+  
+  for (let i = 0; i < firstDayIndex; i++) {
+    const emptyCell = document.createElement("div");
+    emptyCell.className = "cal-day empty";
+    grid.appendChild(emptyCell);
+  }
+  
+  const today = new Date();
+  
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dayCell = document.createElement("div");
+    dayCell.className = "cal-day";
+    dayCell.innerHTML = `<span class="cal-day-num">${d}</span>`;
+    
+    if (today.getDate() === d && today.getMonth() === month && today.getFullYear() === year) {
+      dayCell.classList.add("today");
+    }
+    
+    const dayLogs = logs.filter(l => new Date(l.start).getDate() === d);
+    if (dayLogs.length > 0) {
+      dayCell.classList.add("has-shift");
+      
+      const shiftDots = document.createElement("div");
+      shiftDots.className = "shift-dots";
+      
+      let hasMorning = false;
+      let hasAfternoon = false;
+      let hasEvening = false;
+      
+      dayLogs.forEach(l => {
+        const hour = new Date(l.start).getHours();
+        if (hour >= 5 && hour < 12) hasMorning = true;
+        else if (hour >= 12 && hour < 17) hasAfternoon = true;
+        else hasEvening = true;
+      });
+      
+      if (hasMorning) shiftDots.innerHTML += `<div class="shift-dot morning" title="Ca sáng"></div>`;
+      if (hasAfternoon) shiftDots.innerHTML += `<div class="shift-dot afternoon" title="Ca chiều"></div>`;
+      if (hasEvening) shiftDots.innerHTML += `<div class="shift-dot evening" title="Ca tối"></div>`;
+      
+      dayCell.appendChild(shiftDots);
+      
+      dayCell.onclick = () => showDayDetail(d, month, year, dayLogs);
+    }
+    
+    grid.appendChild(dayCell);
+  }
+  container.appendChild(grid);
+  
+  // Create Legend
+  const legend = document.createElement("div");
+  legend.className = "calendar-legend";
+  legend.innerHTML = `
+    <div class="legend-item"><div class="shift-dot morning"></div> Ca sáng</div>
+    <div class="legend-item"><div class="shift-dot afternoon"></div> Ca chiều</div>
+    <div class="legend-item"><div class="shift-dot evening"></div> Ca tối</div>
+  `;
+  container.appendChild(legend);
+}
+
+window.showDayDetail = function(day, month, year, dayLogs) {
+  const list = $("#dayDetailList");
+  if (!list) return;
+  
+  $("#dayDetailTitle").innerText = `Ngày ${day}/${month + 1}/${year}`;
+  list.innerHTML = "";
+  
+  dayLogs.forEach((l, idx) => {
+      const sT = new Date(l.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
+      const eT = new Date(l.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
+      const h = (l.duration/3600000).toFixed(1);
+      const safeNote = (l.note || "").replace(/'/g, "\\'");
+      
+      const div = document.createElement("div");
+      div.className = "work-card";
+      
+      div.innerHTML = `
+        <div class="card-content" style="flex: 1;">
+          <div class="row-top">
+            <span class="time-range">${sT} - ${eT}</span>
+            <span class="dur-tag">${h}h</span>
+          </div>
+          <div class="row-btm">
+            <div class="note-text">
+              ${l.note ? `<i class="fa-solid fa-note-sticky"></i> ${l.note}` : '...'}
+            </div>
+            ${l.image ? `<a href="${l.image}" target="_blank" style="color:var(--primary)"><i class="fa-solid fa-image"></i></a>` : ''}
+          </div>
+        </div>
+        <div class="card-actions">
+          <div class="wage-display">${fmtMoney(Math.round((l.duration/3600000) * USER_WAGE))}</div>
+          <div class="act-btns">
+            <button class="btn-mini" onclick="editLog('${l.id}', ${l.start}, ${l.end}, '${safeNote}')" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn-mini del" onclick="del('${l.id}')" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      `;
+      list.appendChild(div);
+  });
+  
+  $("#dayDetailModal").classList.remove("hidden");
+  $("#dayDetailModal").style.display = "flex";
+};
+
+// TOGGLE EVENT LISTENERS
+const btnViewTimeline = $("#btnViewTimeline");
+const btnViewCalendar = $("#btnViewCalendar");
+const btnCloseDayDetail = $("#btnCloseDayDetail");
+
+if (btnViewTimeline && btnViewCalendar) {
+  const updateToggleUI = () => {
+    if (diaryViewMode === 'timeline') {
+      btnViewTimeline.classList.add('active');
+      btnViewCalendar.classList.remove('active');
+    } else {
+      btnViewCalendar.classList.add('active');
+      btnViewTimeline.classList.remove('active');
+    }
+  };
+  
+  updateToggleUI(); // Init
+  
+  btnViewTimeline.onclick = () => {
+    diaryViewMode = 'timeline';
+    localStorage.setItem('kaito_diary_view', diaryViewMode);
+    updateToggleUI();
+    render();
+  };
+  
+  btnViewCalendar.onclick = () => {
+    diaryViewMode = 'calendar';
+    localStorage.setItem('kaito_diary_view', diaryViewMode);
+    updateToggleUI();
+    render();
+  };
+}
+
+if (btnCloseDayDetail) {
+  btnCloseDayDetail.onclick = () => {
+    $("#dayDetailModal").classList.add("hidden");
+    setTimeout(() => {
+      $("#dayDetailModal").style.display = "none";
+    }, 200);
+  };
+}

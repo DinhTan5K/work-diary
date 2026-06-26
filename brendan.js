@@ -1,5 +1,8 @@
 // brendan.js - Bottom Patrol Pets
 document.addEventListener('DOMContentLoaded', () => {
+  const showSprites = localStorage.getItem('kaito_show_sprites') !== 'false';
+  if (!showSprites) return;
+
   const petWidth = 70; 
   const petHeight = 70; 
 
