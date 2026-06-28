@@ -427,6 +427,25 @@
 </script>
 <script type="module" src="app.js"></script>
   <script src="brendan.js"></script>
+  <script>
+    // Đăng ký Service Worker nhỏ gọn chỉ để phục vụ custom logo cho iOS Home Screen
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').then(function(reg) {
+        // Khi SW đã active, gửi logo custom (nếu có) để nó cache sẵn
+        function sendLogo() {
+          var logo = localStorage.getItem('kaito_custom_logo');
+          if (logo && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SET_CUSTOM_LOGO', logo: logo });
+          }
+        }
+        if (navigator.serviceWorker.controller) {
+          sendLogo();
+        } else {
+          navigator.serviceWorker.addEventListener('controllerchange', sendLogo);
+        }
+      });
+    }
+  </script>
 
 </body>
 </html>

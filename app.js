@@ -787,7 +787,15 @@ function applyCustomLogo(src) {
   const preview = $("#logoPreviewImg");
   if (preview) preview.src = src;
   const favicon = $("#favicon"); if (favicon) favicon.href = src;
-  const appleIcon = $("#appleIcon"); if (appleIcon) appleIcon.href = src;
+  // Cập nhật tất cả apple-touch-icon
+  document.querySelectorAll('link[rel="apple-touch-icon"]').forEach(link => link.href = src);
+
+  // Gửi ảnh cho Service Worker để cache, iOS sẽ lấy từ SW khi Add to Home Screen
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    if (src && src.startsWith('data:')) {
+      navigator.serviceWorker.controller.postMessage({ type: 'SET_CUSTOM_LOGO', logo: src });
+    }
+  }
 }
 
 function loadSavedLogo() {
@@ -851,6 +859,10 @@ $("#btnResetLogo").onclick = (e) => {
   e.stopPropagation();
   localStorage.removeItem('kaito_custom_logo');
   applyCustomLogo(DEFAULT_LOGO);
+  // Xóa cache custom logo trong SW
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CUSTOM_LOGO' });
+  }
   showToast("Đã khôi phục logo mặc định!", "success");
 };
 
