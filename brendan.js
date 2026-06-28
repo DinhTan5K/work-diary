@@ -42,17 +42,106 @@ document.addEventListener('DOMContentLoaded', () => {
     const config = allPetsConfig[i];
     const el = document.createElement('div');
     el.classList.add(config.className);
+    // Style để có thể kéo thả dễ dàng hơn, và hiển thị "tay" khi di chuột
+    el.style.cursor = 'grab';
     document.body.appendChild(el);
-    petsData.push({
+    
+    const petData = {
       el: el,
       x: config.x,
       speed: config.speed,
       dir: config.dir,
-      cls: config.cls
-    });
+      cls: config.cls,
+      isDragging: false,
+      dragX: 0,
+      dragY: 0,
+      dragOffsetX: 0,
+      dragOffsetY: 0
+    };
+
+    // --- Drag and Drop Logic ---
+    function startDrag(e) {
+      if(e.cancelable) e.preventDefault();
+      petData.isDragging = true;
+      petData.el.style.transition = 'none'; // Tắt transition khi đang kéo
+      petData.el.style.cursor = 'grabbing';
+      
+      const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+      const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+      
+      const rect = petData.el.getBoundingClientRect();
+      petData.dragOffsetX = clientX - rect.left;
+      petData.dragOffsetY = clientY - rect.top;
+      
+      petData.dragX = clientX - petData.dragOffsetX;
+      petData.dragY = clientY - petData.dragOffsetY;
+      
+      petData.el.style.transform = `translate3d(${petData.dragX}px, ${petData.dragY}px, 0)`;
+      petData.el.style.zIndex = 9999;
+      
+      function onMove(e) {
+        if(e.cancelable) e.preventDefault();
+        const cx = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        const cy = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+        petData.dragX = cx - petData.dragOffsetX;
+        petData.dragY = cy - petData.dragOffsetY;
+        // Cập nhật ngay lập tức thay vì chờ requestAnimationFrame để mượt hơn
+        petData.el.style.transform = `translate3d(${petData.dragX}px, ${petData.dragY}px, 0)`;
+      }
+      
+      function onEnd(e) {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onEnd);
+        document.removeEventListener('touchmove', onMove);
+        document.removeEventListener('touchend', onEnd);
+        
+        petData.isDragging = false;
+        petData.isFalling = true; // Đánh dấu đang rơi
+        petData.el.style.zIndex = '';
+        petData.el.style.cursor = 'grab';
+        
+        // Cập nhật vị trí X mới sau khi thả
+        petData.x = petData.dragX;
+        
+        // Tính toán floorY (mặt đất) để thả xuống
+        let floorY = window.innerHeight - petHeight;
+        const nav = document.querySelector('.tabs-nav');
+        if (nav && nav.offsetHeight > 0) {
+          floorY = nav.getBoundingClientRect().top - petHeight + 15;
+        }
+
+        // Thêm hiệu ứng rơi xuống nhẹ nhàng
+        petData.el.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        // Bắt đầu cho rơi xuống mặt đất ngay lập tức
+        petData.el.style.transform = `translate3d(${petData.x}px, ${floorY}px, 0)`;
+        
+        // Xóa transition sau khi rơi xong để nó tiếp tục đi bộ dọc trục ngang bình thường
+        setTimeout(() => {
+          if (!petData.isDragging) {
+             petData.isFalling = false;
+             petData.el.style.transition = '';
+          }
+        }, 500);
+      }
+      
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, {passive: false});
+      document.addEventListener('touchend', onEnd);
+    }
+
+    petData.el.addEventListener('mousedown', startDrag);
+    petData.el.addEventListener('touchstart', startDrag, {passive: false});
+    
+    petsData.push(petData);
   }
 
   function updatePet(pet) {
+    if (pet.isDragging || pet.isFalling) {
+      // Khi đang kéo HOẶC đang rơi thì không đi bộ, không đổi transform để transition tự làm mượt
+      return;
+    }
+
     const W = window.innerWidth - petWidth;
     const nav = document.querySelector('.tabs-nav');
     

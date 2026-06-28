@@ -157,7 +157,6 @@ body.theme-rose .greeting-popup { background: rgba(255,245,247,0.95); border-col
   
   animation: spriteWalk 0.8s steps(6) infinite;
   image-rendering: pixelated; 
-  pointer-events: none;
 }
 
 @keyframes spriteWalk {
@@ -184,7 +183,6 @@ body.theme-rose .greeting-popup { background: rgba(255,245,247,0.95); border-col
   
   animation: wallyWalk 0.8s steps(4) infinite;
   image-rendering: pixelated; 
-  pointer-events: none;
 }
 
 @keyframes wallyWalk {
@@ -211,7 +209,6 @@ body.theme-rose .greeting-popup { background: rgba(255,245,247,0.95); border-col
   
   animation: wallyWalk 0.8s steps(4) infinite; /* Dùng chung animation 4 bước của Wally */
   image-rendering: pixelated; 
-  pointer-events: none;
 }
 
 .brendan3-walk-down { background-position-y: 0px !important; }   
