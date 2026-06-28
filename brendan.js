@@ -105,7 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
         petData.y = petData.dragY;
         
         // Đổi hướng quay mặt xuống dưới để đi bộ xuống đất
-        petData.originalDir = petData.dir;
+        // Chỉ lưu lại hướng cũ nếu nó đang đi ngang (không phải đang rơi)
+        if (petData.dir !== 'down') {
+          petData.originalDir = petData.dir;
+        }
         petData.dir = 'down';
       }
       
