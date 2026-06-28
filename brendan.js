@@ -19,21 +19,21 @@ document.addEventListener('DOMContentLoaded', () => {
       x: 10,
       speed: 1.0,
       dir: 'right',
-      cls: { left: 'walk-left', right: 'walk-right' }
+      cls: { left: 'walk-left', right: 'walk-right', down: 'walk-down', up: 'walk-up' }
     },
     {
       className: 'wally-pet',
       x: window.innerWidth / 2,
       speed: 0.9,
       dir: 'left',
-      cls: { left: 'wally-walk-left', right: 'wally-walk-right' }
+      cls: { left: 'wally-walk-left', right: 'wally-walk-right', down: 'wally-walk-down', up: 'wally-walk-up' }
     },
     {
       className: 'brendan3-pet',
       x: window.innerWidth - petWidth - 10,
       speed: 1.1,
       dir: 'left',
-      cls: { left: 'brendan3-walk-left', right: 'brendan3-walk-right' }
+      cls: { left: 'brendan3-walk-left', right: 'brendan3-walk-right', down: 'brendan3-walk-down', up: 'brendan3-walk-up' }
     }
   ];
 
@@ -100,28 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
         petData.el.style.zIndex = '';
         petData.el.style.cursor = 'grab';
         
-        // Cập nhật vị trí X mới sau khi thả
+        // Cập nhật vị trí X và Y mới sau khi thả
         petData.x = petData.dragX;
+        petData.y = petData.dragY;
         
-        // Tính toán floorY (mặt đất) để thả xuống
-        let floorY = window.innerHeight - petHeight;
-        const nav = document.querySelector('.tabs-nav');
-        if (nav && nav.offsetHeight > 0) {
-          floorY = nav.getBoundingClientRect().top - petHeight + 15;
-        }
-
-        // Thêm hiệu ứng rơi xuống nhẹ nhàng
-        petData.el.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        // Bắt đầu cho rơi xuống mặt đất ngay lập tức
-        petData.el.style.transform = `translate3d(${petData.x}px, ${floorY}px, 0)`;
-        
-        // Xóa transition sau khi rơi xong để nó tiếp tục đi bộ dọc trục ngang bình thường
-        setTimeout(() => {
-          if (!petData.isDragging) {
-             petData.isFalling = false;
-             petData.el.style.transition = '';
-          }
-        }, 500);
+        // Đổi hướng quay mặt xuống dưới để đi bộ xuống đất
+        petData.originalDir = petData.dir;
+        petData.dir = 'down';
       }
       
       document.addEventListener('mousemove', onMove);
@@ -137,8 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updatePet(pet) {
-    if (pet.isDragging || pet.isFalling) {
-      // Khi đang kéo HOẶC đang rơi thì không đi bộ, không đổi transform để transition tự làm mượt
+    if (pet.isDragging) {
+      // Khi đang kéo thì chỉ update vị trí theo chuột, không đi bộ
+      pet.el.style.transform = `translate3d(${pet.dragX}px, ${pet.dragY}px, 0)`;
       return;
     }
 
@@ -153,27 +139,38 @@ document.addEventListener('DOMContentLoaded', () => {
       floorY = nav.getBoundingClientRect().top - petHeight + 15;
     }
 
-    // Di chuyển theo hướng hiện tại
-    if (pet.dir === 'left') pet.x -= pet.speed;
-    if (pet.dir === 'right') pet.x += pet.speed;
+    if (pet.isFalling) {
+      // Khi rớt, cho đi bộ từ từ xuống dưới
+      pet.y += pet.speed * 1.5; // Rơi nhanh hơn đi bộ ngang một xíu
+      if (pet.y >= floorY) {
+        pet.y = floorY;
+        pet.isFalling = false;
+        pet.dir = pet.originalDir; // Quay mặt lại hướng cũ khi chạm đất
+      }
+    } else {
+      // Đi bộ ngang bình thường
+      pet.y = floorY;
+      if (pet.dir === 'left') pet.x -= pet.speed;
+      if (pet.dir === 'right') pet.x += pet.speed;
 
-    pet.el.style.animationPlayState = 'running';
-
-    // Đụng 2 cạnh màn hình thì quay đầu
-    if (pet.dir === 'right' && pet.x >= W) { 
-      pet.x = W; 
-      pet.dir = 'left'; 
-    }
-    else if (pet.dir === 'left' && pet.x <= 0) { 
-      pet.x = 0; 
-      pet.dir = 'right'; 
+      // Đụng 2 cạnh màn hình thì quay đầu
+      if (pet.dir === 'right' && pet.x >= W) { 
+        pet.x = W; 
+        pet.dir = 'left'; 
+      }
+      else if (pet.dir === 'left' && pet.x <= 0) { 
+        pet.x = 0; 
+        pet.dir = 'right'; 
+      }
     }
 
     // Xóa hết class hướng cũ, cập nhật class hướng mới
     pet.el.classList.remove(pet.cls.left, pet.cls.right, 'walk-up', 'walk-down', 'wally-walk-up', 'wally-walk-down', 'brendan3-walk-up', 'brendan3-walk-down');
-    pet.el.classList.add(pet.cls[pet.dir]);
+    if (pet.cls[pet.dir]) {
+      pet.el.classList.add(pet.cls[pet.dir]);
+    }
 
-    pet.el.style.transform = `translate3d(${pet.x}px, ${floorY}px, 0)`;
+    pet.el.style.transform = `translate3d(${pet.x}px, ${pet.y}px, 0)`;
   }
 
   function loop() {
