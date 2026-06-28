@@ -708,8 +708,23 @@ input[type="checkbox"]:active {
    THEME SYSTEM (Neo-Brutalism Variations)
    ========================================= */
 
-/* Ocean -> Bubblegum */
-body.theme-ocean { --bg-color: #e0f2fe; --card-bg: #fff; --bento-1: #bae6fd; --bento-2: #fbcfe8; --bento-3: #bfdbfe; --primary: #38bdf8; }
+/* Ocean -> Ombre Macaroon (Mint → Vàng) */
+body.theme-ocean {
+  --bg-color: #E8F5E9;
+  --card-bg: #FFFDE7;
+  --bento-1: #B5EAD7;
+  --bento-2: #FFEEAD;
+  --bento-3: #C8E6C9;
+  --primary: #66BB6A;
+  --accent: #FFD54F;
+  --text-main: #2E4A3E;
+  --text-muted: #5D7A6B;
+  --border-color: #A5D6A7;
+  --shadow-brutal: 4px 4px 0px #81C784;
+  --shadow-brutal-hover: 2px 2px 0px #81C784;
+  --border-brutal: 2.5px solid #A5D6A7;
+}
+body.theme-ocean { background-image: radial-gradient(#81C78418 2px, transparent 2px); }
 
 /* Rosé -> Messenger Pink */
 body.theme-rose {
