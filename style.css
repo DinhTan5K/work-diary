@@ -861,9 +861,7 @@ body.theme-forest { --bg-color: #dcfce7; --card-bg: #fff; --bento-1: #bbf7d0; --
 
 /* Sunset -> Lavender */
 body.theme-sunset { --bg-color: #f3e8ff; --card-bg: #fff; --bento-1: #e9d5ff; --bento-2: #fbcfe8; --bento-3: #ddd6fe; --primary: #a855f7; }
-
-/* AMOLED -> Monochrome */
-body.theme-amoled { --bg-color: #ffffff; --card-bg: #ffffff; --bento-1: #e5e5e5; --bento-2: #e5e5e5; --bento-3: #e5e5e5; --primary: #d4d4d4; }
+body.theme-amoled { --bg-color: #000000; --card-bg: #0a0a0a; --bento-1: #1a1a1a; --bento-2: #222222; --bento-3: #111111; --primary: #a855f7; --text-main: #ffffff; --text-muted: #888888; --border-color: #333333; }
 
 /* =========================================
    SETTINGS MODAL
@@ -1231,15 +1229,6 @@ body.theme-amoled .view-btn.active {
   border-color: var(--primary);
   color: var(--text-main);
   box-shadow: 0 0 5px rgba(0,0,0,0.1);
-}
-
-body.theme-default .cal-day.has-shift, 
-body.theme-ocean .cal-day.has-shift, 
-body.theme-forest .cal-day.has-shift, 
-body.theme-sunset .cal-day.has-shift, 
-body.theme-amoled .cal-day.has-shift {
-  color: #fff;
-  background: rgba(255,255,255,0.05);
 }
 
 .cal-day-num {
