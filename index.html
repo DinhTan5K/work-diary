@@ -415,7 +415,8 @@
       var imgs = document.querySelectorAll('.logo-img');
       for(var i=0; i<imgs.length; i++) imgs[i].src = logo;
       var favicon = document.getElementById('favicon'); if(favicon) favicon.href = logo;
-      var appleIcon = document.getElementById('appleIcon'); if(appleIcon) appleIcon.href = logo;
+      var appleIcons = document.querySelectorAll('link[rel="apple-touch-icon"]');
+      for(var i=0; i<appleIcons.length; i++) appleIcons[i].href = logo;
     }
     var targetDays = localStorage.getItem('kaito_target_days');
     if(targetDays) {
