@@ -861,7 +861,7 @@ body.theme-forest { --bg-color: #dcfce7; --card-bg: #fff; --bento-1: #bbf7d0; --
 
 /* Sunset -> Lavender */
 body.theme-sunset { --bg-color: #f3e8ff; --card-bg: #fff; --bento-1: #e9d5ff; --bento-2: #fbcfe8; --bento-3: #ddd6fe; --primary: #a855f7; }
-body.theme-amoled { --bg-color: #000000; --card-bg: #0a0a0a; --bento-1: #1a1a1a; --bento-2: #222222; --bento-3: #111111; --primary: #a855f7; --text-main: #ffffff; --text-muted: #888888; --border-color: #333333; }
+body.theme-amoled { --bg-color: #121212; --card-bg: #1e1e1e; --bento-1: #2d2d2d; --bento-2: #3d3d3d; --bento-3: #252525; --primary: #00e5ff; --text-main: #f0f0f0; --text-muted: #9e9e9e; --border-color: #444444; }
 
 /* =========================================
    SETTINGS MODAL
