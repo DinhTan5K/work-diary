@@ -433,24 +433,62 @@
 <script type="module" src="app.js"></script>
   <script src="brendan.js"></script>
   <script>
-    // Đăng ký Service Worker nhỏ gọn chỉ để phục vụ custom logo cho iOS Home Screen
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(function(reg) {
-        // Khi SW đã active, gửi logo custom (nếu có) để nó cache sẵn
-        function sendLogo() {
-          var logo = localStorage.getItem('kaito_custom_logo');
-          if (logo && navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({ type: 'SET_CUSTOM_LOGO', logo: logo });
-          }
+  if ('serviceWorker' in navigator) {
+    let refreshing = false;
+
+    // Tự động reload ứng dụng khi Service Worker mới đã active
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+
+    navigator.serviceWorker.register('./sw.js').then(function (reg) {
+      // Chủ động check SW mới trên Server mỗi khi người dùng bật App / mở lại Tab
+      reg.update();
+
+      function sendLogo() {
+        var logo = localStorage.getItem('kaito_custom_logo');
+        if (logo && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'SET_CUSTOM_LOGO', logo: logo });
         }
-        if (navigator.serviceWorker.controller) {
-          sendLogo();
-        } else {
-          navigator.serviceWorker.addEventListener('controllerchange', sendLogo);
+      }
+
+      if (navigator.serviceWorker.controller) {
+        sendLogo();
+      }
+    });
+  }
+</script><script>
+  if ('serviceWorker' in navigator) {
+    let refreshing = false;
+
+    // Tự động reload ứng dụng khi Service Worker mới đã active
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+
+    navigator.serviceWorker.register('./sw.js').then(function (reg) {
+      // Chủ động check SW mới trên Server mỗi khi người dùng bật App / mở lại Tab
+      reg.update();
+
+      function sendLogo() {
+        var logo = localStorage.getItem('kaito_custom_logo');
+        if (logo && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'SET_CUSTOM_LOGO', logo: logo });
         }
-      });
-    }
-  </script>
+      }
+
+      if (navigator.serviceWorker.controller) {
+        sendLogo();
+      }
+    });
+  }
+</script>
 
 </body>
 </html>
