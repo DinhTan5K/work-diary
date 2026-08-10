@@ -444,36 +444,8 @@
       }
     });
 
-    navigator.serviceWorker.register('./sw.js').then(function (reg) {
-      // Chủ động check SW mới trên Server mỗi khi người dùng bật App / mở lại Tab
-      reg.update();
-
-      function sendLogo() {
-        var logo = localStorage.getItem('kaito_custom_logo');
-        if (logo && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({ type: 'SET_CUSTOM_LOGO', logo: logo });
-        }
-      }
-
-      if (navigator.serviceWorker.controller) {
-        sendLogo();
-      }
-    });
-  }
-</script><script>
-  if ('serviceWorker' in navigator) {
-    let refreshing = false;
-
-    // Tự động reload ứng dụng khi Service Worker mới đã active
-    navigator.serviceWorker.addEventListener('controllerchange', function () {
-      if (!refreshing) {
-        refreshing = true;
-        window.location.reload();
-      }
-    });
-
-    navigator.serviceWorker.register('./sw.js').then(function (reg) {
-      // Chủ động check SW mới trên Server mỗi khi người dùng bật App / mở lại Tab
+    // BẮT BUỘC: Thêm ?v=3 (bằng với version trong sw.js) để ép điện thoại tải file sw.js mới từ Server
+    navigator.serviceWorker.register('./sw.js?v=3').then(function (reg) {
       reg.update();
 
       function sendLogo() {
