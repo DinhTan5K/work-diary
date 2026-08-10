@@ -2,7 +2,8 @@
 // Service Worker - Auto Update + Offline + Custom Logo
 // =============================================
 
-const CACHE_VERSION = 'kaito-v3'; // Đổi version này mỗi khi deploy để ép SW cập nhật
+// BƯỚC 1: Đổi cái này thành v4 để nó bắt đầu reset lại toàn bộ
+const CACHE_VERSION = 'kaito-v4'; 
 const LOGO_CACHE = 'logo-cache-v1';
 
 const APP_FILES = [
@@ -27,10 +28,18 @@ const EXTERNAL_URLS = [
 
 // INSTALL
 self.addEventListener('install', (e) => {
-  self.skipWaiting(); // Ép Kích hoạt SW mới ngay lập tức
+  self.skipWaiting(); 
   e.waitUntil(
     caches.open(CACHE_VERSION).then(cache => {
-      const localCache = cache.addAll(APP_FILES);
+      // Ép tải mới toàn bộ lúc install, không dùng cache HTTP
+      const localCache = Promise.all(
+        APP_FILES.map(url => {
+          return fetch(url, { cache: 'no-store' }).then(res => {
+            if (res.ok) return cache.put(url, res);
+          }).catch(() => {});
+        })
+      );
+      
       const externalCache = Promise.allSettled(
         EXTERNAL_URLS.map(url =>
           fetch(url, { mode: 'cors' })
@@ -55,7 +64,7 @@ self.addEventListener('activate', (e) => {
           }
         })
       );
-    }).then(() => self.clients.claim()) // Chiếm quyền kiểm soát tất cả client ngay
+    }).then(() => self.clients.claim()) 
   );
 });
 
@@ -97,16 +106,20 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // 2. Chiến lược Network First cho Code Local (để luôn ăn bản mới nhất khi có mạng)
+  // 2. CHIẾN LƯỢC TỐI THƯỢNG: ÉP LẤY TỪ SERVER TRỰC TIẾP
   if (e.request.mode === 'navigate' || url.origin === location.origin) {
     e.respondWith(
-      fetch(e.request).then(networkResponse => {
+      // Thêm { cache: 'no-store' } để vượt mặt HTTP Cache của Safari/Chrome
+      fetch(e.request.url, { cache: 'no-store' }).then(networkResponse => {
         if (networkResponse && networkResponse.ok) {
           const clone = networkResponse.clone();
           caches.open(CACHE_VERSION).then(cache => cache.put(e.request, clone));
         }
         return networkResponse;
-      }).catch(() => caches.match(e.request)) // Mất mạng mới fallback về Cache
+      }).catch(() => {
+        // Chỉ khi nào mất mạng hoàn toàn (Offiline) mới lôi trong cache ra xài
+        return caches.match(e.request);
+      }) 
     );
     return;
   }

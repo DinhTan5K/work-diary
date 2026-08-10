@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+  <!-- THÊM 3 DÒNG NÀY ĐỂ ÉP TRÌNH DUYỆT KHÔNG CACHE FILE HTML -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8">
   <title>KAITO</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -433,34 +437,44 @@
 <script type="module" src="app.js"></script>
   <script src="brendan.js"></script>
   <script>
-  if ('serviceWorker' in navigator) {
-    let refreshing = false;
+    if ('serviceWorker' in navigator) {
+      let refreshing = false;
 
-    // Tự động reload ứng dụng khi Service Worker mới đã active
-    navigator.serviceWorker.addEventListener('controllerchange', function () {
-      if (!refreshing) {
-        refreshing = true;
-        window.location.reload();
-      }
-    });
-
-    // BẮT BUỘC: Thêm ?v=3 (bằng với version trong sw.js) để ép điện thoại tải file sw.js mới từ Server
-    navigator.serviceWorker.register('./sw.js?v=3').then(function (reg) {
-      reg.update();
-
-      function sendLogo() {
-        var logo = localStorage.getItem('kaito_custom_logo');
-        if (logo && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({ type: 'SET_CUSTOM_LOGO', logo: logo });
+      // KHI PHÁT HIỆN BẢN MỚI -> XÓA SẠCH CACHE RỒI MỚI RELOAD
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!refreshing) {
+          refreshing = true;
+          // Quét sạch ổ cứng của trình duyệt trước khi tải lại
+          caches.keys().then(function(names) {
+            for (let name of names) caches.delete(name);
+          }).then(function() {
+            window.location.reload(true); // reload(true) ép tải từ server
+          });
         }
-      }
+      });
 
-      if (navigator.serviceWorker.controller) {
-        sendLogo();
-      }
-    });
-  }
-</script>
+      // KHÔNG CẦN THÊM ?v= VÀO ĐÂY NỮA, VÌ TA SẼ CHẶN BẰNG CACHE NO-STORE
+      navigator.serviceWorker.register('./sw.js').then(function (reg) {
+        reg.update(); // Check lúc mới mở app
+
+        // KIỂM TRA UPDATE MỖI KHI NGƯỜI DÙNG CHUYỂN TAB HOẶC MỞ LẠI APP TỪ BACKGROUND (Cực kỳ quan trọng cho iOS)
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            reg.update();
+          }
+        });
+
+        // Code xử lý Logo của bro
+        function sendLogo() {
+          var logo = localStorage.getItem('kaito_custom_logo');
+          if (logo && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SET_CUSTOM_LOGO', logo: logo });
+          }
+        }
+        if (navigator.serviceWorker.controller) sendLogo();
+      });
+    }
+  </script>
 
 </body>
 </html>
