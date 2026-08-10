@@ -32,10 +32,13 @@ function animateValue(elementId, start, end, duration, formatter) {
 function showToast(msg, type = "error") {
   const container = document.getElementById("toastContainer");
   if(!container) return;
-  const icon = type === "error" ? "fa-circle-exclamation" : "fa-circle-check";
+  let icon = "fa-circle-check";
+  if (type === "error") icon = "fa-circle-exclamation";
+  else if (type === "info") icon = "fa-circle-info";
   const div = document.createElement("div");
   div.className = `toast toast-${type}`;
   div.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`;
+  div.style.pointerEvents = "auto";
   container.appendChild(div);
   setTimeout(() => {
     div.classList.add("toast-out");
@@ -592,6 +595,11 @@ async function render() {
       `;
       overviewList.appendChild(div);
     });
+  }
+
+  // Cập nhật thành tựu (Thêm mới)
+  if (window.checkAchievements) {
+    window.checkAchievements(filteredLogs, mMoney);
   }
 
   // LOGIC KIỂM TRA ĐỂ ẨN/HIỆN TIỀN (MỚI)
@@ -1170,3 +1178,113 @@ if (btnCloseDayDetail) {
     }, 200);
   };
 }
+
+// === ACHIEVEMENTS SYSTEM ===
+const ACHIEVEMENTS = [
+  { id: 'achi-bee', name: 'Ong chăm chỉ', desc: 'Làm việc 7 ngày liên tục', icon: '<i class="fa-solid fa-bug"></i>' },
+  { id: 'achi-owl', name: 'Chiến thần ca tối', desc: '3 ngày liên tiếp có ca tối (17h30-22h30)', icon: '<i class="fa-solid fa-moon"></i>' },
+  { id: 'achi-rich', name: 'Đại gia', desc: 'Có tháng thu nhập > 3.500.000₫', icon: '<i class="fa-solid fa-gem"></i>' }
+];
+
+let currentMonthAchievements = [];
+let notifiedAchievements = new Set();
+
+window.checkAchievements = (monthLogs, currentMonthMoney) => {
+  currentMonthAchievements = [];
+  
+  // Đại gia
+  if (currentMonthMoney >= 3500000) {
+    currentMonthAchievements.push('achi-rich');
+  }
+
+  // Pre-process for Bee and Owl
+  const ascLogs = [...monthLogs].sort((a, b) => a.start - b.start);
+  const datesMap = new Map();
+  
+  ascLogs.forEach(l => {
+    const d = new Date(l.start);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (!datesMap.has(dateStr)) datesMap.set(dateStr, []);
+    datesMap.get(dateStr).push(l);
+  });
+  
+  const uniqueDatesStr = Array.from(datesMap.keys()).sort();
+  
+  // Check Ong chăm chỉ (7 consecutive days)
+  let streak = 0;
+  for (let i = 0; i < uniqueDatesStr.length; i++) {
+    if (i === 0) {
+      streak = 1;
+    } else {
+      const prevDate = new Date(uniqueDatesStr[i-1]);
+      const currDate = new Date(uniqueDatesStr[i]);
+      const diffTime = Math.abs(currDate - prevDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays === 1) streak++;
+      else streak = 1;
+    }
+    if (streak >= 7) {
+      currentMonthAchievements.push('achi-bee');
+      break;
+    }
+  }
+
+  // Check Chiến thần ca tối
+  let owlStreak = 0;
+  let lastNightShiftDate = null;
+  for (let i = 0; i < uniqueDatesStr.length; i++) {
+    const dStr = uniqueDatesStr[i];
+    const dayLogs = datesMap.get(dStr);
+    let hasNightShift = false;
+    
+    for (let l of dayLogs) {
+      const st = new Date(l.start);
+      const nightStart = new Date(st.getFullYear(), st.getMonth(), st.getDate(), 17, 30, 0).getTime();
+      const nightEnd = new Date(st.getFullYear(), st.getMonth(), st.getDate(), 22, 30, 0).getTime();
+      if (l.start <= nightEnd && l.end >= nightStart) { 
+        hasNightShift = true; 
+        break; 
+      }
+    }
+
+    if (hasNightShift) {
+      if (!lastNightShiftDate) {
+        owlStreak = 1;
+      } else {
+        const diffTime = Math.abs(new Date(dStr) - new Date(lastNightShiftDate));
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays === 1) owlStreak++;
+        else owlStreak = 1;
+      }
+      lastNightShiftDate = dStr;
+      
+      if (owlStreak >= 3) {
+        currentMonthAchievements.push('achi-owl');
+        break;
+      }
+    }
+  }
+
+  renderAchievements();
+};
+
+window.renderAchievements = () => {
+  const container = $("#achievementsList");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  ACHIEVEMENTS.forEach(ach => {
+    const isUnlocked = currentMonthAchievements.includes(ach.id);
+    const div = document.createElement("div");
+    div.className = "badge-item" + (isUnlocked ? " unlocked" : " locked");
+    div.innerHTML = `
+      ${!isUnlocked ? '<div class="badge-locked-overlay"><i class="fa-solid fa-lock"></i></div>' : ''}
+      <div class="badge-icon-wrap">${ach.icon}</div>
+      <div class="badge-name">${ach.name}</div>
+    `;
+    if (isUnlocked) {
+      div.onclick = () => showToast(`Thành tựu: ${ach.name} - ${ach.desc}`, "info");
+    }
+    container.appendChild(div);
+  });
+};
