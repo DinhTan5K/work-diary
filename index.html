@@ -40,6 +40,9 @@
     <div id="appNameLoading"
       style="margin-top: 15px; font-family: var(--font-head); font-weight: 800; font-size: 1.5rem; letter-spacing: 2px;">
       KAITO</div>
+    <div id="appVersionLoading" style="margin-top: 8px; font-size: 0.95rem; font-weight: 700; opacity: 0.6; letter-spacing: 1px;">
+      Đang tải...
+    </div>
   </div>
 
   <style>
@@ -552,6 +555,13 @@
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
+      
+      navigator.serviceWorker.addEventListener('message', (e) => {
+        if (e.data && e.data.type === 'VERSION') {
+          const vEl = document.getElementById('appVersionLoading');
+          if (vEl) vEl.innerText = e.data.version;
+        }
+      });
 
       // KHI PHÁT HIỆN BẢN MỚI -> XÓA SẠCH CACHE RỒI MỚI RELOAD
       navigator.serviceWorker.addEventListener('controllerchange', function () {
@@ -569,6 +579,10 @@
       // KHÔNG CẦN THÊM ?v= VÀO ĐÂY NỮA, VÌ TA SẼ CHẶN BẰNG CACHE NO-STORE
       navigator.serviceWorker.register('./sw.js').then(function (reg) {
         reg.update(); // Check lúc mới mở app
+        
+        navigator.serviceWorker.ready.then(r => {
+          if (r.active) r.active.postMessage({ type: 'GET_VERSION' });
+        });
 
         // KIỂM TRA UPDATE MỖI KHI NGƯỜI DÙNG CHUYỂN TAB HOẶC MỞ LẠI APP TỪ BACKGROUND (Cực kỳ quan trọng cho iOS)
         document.addEventListener('visibilitychange', () => {

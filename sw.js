@@ -3,7 +3,7 @@
 // =============================================
 
 // BƯỚC 1: Đổi cái này thành v để nó bắt đầu reset lại toàn bộ
-const CACHE_VERSION = 'kaito-v6'; 
+const CACHE_VERSION = 'v2.0.0'; 
 const LOGO_CACHE = 'logo-cache-v1';
 
 const APP_FILES = [
@@ -86,6 +86,10 @@ self.addEventListener('message', (e) => {
 
   if (e.data && e.data.type === 'CLEAR_CUSTOM_LOGO') {
     caches.open(LOGO_CACHE).then(cache => cache.delete('/custom-logo.png'));
+  }
+
+  if (e.data && e.data.type === 'GET_VERSION') {
+    e.source.postMessage({ type: 'VERSION', version: CACHE_VERSION });
   }
 });
 
