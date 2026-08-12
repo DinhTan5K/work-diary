@@ -489,90 +489,152 @@ body.theme-rose .greeting-popup { background: rgba(255,245,247,0.95); border-col
 .btn-mini.del { background: var(--bento-2); }
 .btn-mini.del:hover { background: var(--accent); color: #fff;}
 
-/* Schedule Header */
-.schedule-header { margin-bottom: 20px; }
-.schedule-header h3 { margin: 0 0 4px 0; font-size: 1.4rem; font-weight: 900; text-transform: uppercase; border-bottom: 3px solid #000; display: inline-block; padding-bottom: 4px; }
-
 /* =========================================
-   Schedule Card
+   Expense Tracker
    ========================================= */
-.sch-card {
-  background: var(--card-bg);
-  border: var(--border-brutal); box-shadow: var(--shadow-brutal);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  margin-bottom: 16px;
-  display: flex; flex-direction: column; gap: 16px;
-  position: relative; overflow: hidden;
-  opacity: 0; animation: schSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  transition: 0.2s;
+.expense-header {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
-.sch-card:hover { transform: translate(2px, 2px); box-shadow: var(--shadow-brutal-hover); }
-
-/* Today highlight */
-.sch-card.sch-today { background: var(--bento-3); }
-
-@keyframes schSlideUp {
-  0% { opacity: 0; transform: translateY(24px) scale(0.97); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+.expense-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  border-bottom: 3px solid #000;
+  display: inline-block;
+  padding-bottom: 4px;
 }
-
-/* Top row: date badge + time */
-.sch-top {
-  display: flex; align-items: center; gap: 16px;
-}
-.sch-date-badge {
-  width: 56px; height: 56px; flex-shrink: 0;
-  background: #fff; border: 2px solid #000; box-shadow: 2px 2px 0px #000;
-  border-radius: var(--radius-sm);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.sch-weekday {
-  font-size: 0.75rem; font-weight: 900; text-transform: uppercase;
-  color: #000; line-height: 1.2;
-}
-.sch-day {
-  font-size: 1.4rem; font-weight: 900; color: #000; line-height: 1;
-}
-.sch-time-info {
-  display: flex; flex-direction: column; gap: 4px; flex: 1;
-}
-.sch-time {
-  font-size: 1.2rem; font-weight: 800; color: var(--text-main);
-}
-.sch-dur {
-  font-size: 0.9rem; font-weight: 700; color: var(--text-muted);
-}
-
-/* Bottom row: actions */
-.sch-bottom {
-  display: flex; align-items: center; justify-content: space-between;
-  padding-top: 16px;
-  border-top: 3px solid #000;
-}
-.sch-actions-left {
-  display: flex; gap: 8px;
-}
-.sch-btn-edit, .sch-btn-del {
-  width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid #000; box-shadow: 2px 2px 0px #000;
-  display: flex; align-items: center; justify-content: center; background: #fff;
-  font-size: 16px; cursor: pointer; transition: 0.2s ease; color: #000;
-}
-.sch-btn-edit:hover { background: var(--primary); transform: translate(2px, 2px); box-shadow: 0 0 0 #000; }
-.sch-btn-del {
-  background: var(--bento-2);
-}
-.sch-btn-del:hover { background: var(--accent); color: #fff; transform: translate(2px, 2px); box-shadow: 0 0 0 #000; }
-
-.sch-btn-checkin {
-  padding: 12px 24px; border-radius: var(--radius-md); border: 2px solid #000; box-shadow: 4px 4px 0px #000;
+.expense-salary-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   background: var(--bento-1);
-  color: #000; font-weight: 900; font-size: 0.95rem; text-transform: uppercase;
-  cursor: pointer; transition: 0.2s ease;
-  display: flex; align-items: center; gap: 8px;
+  border: var(--border-brutal);
+  box-shadow: var(--shadow-brutal);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-weight: 800;
 }
-.sch-btn-checkin:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #000; background: var(--primary); }
-.sch-btn-checkin:active { transform: translate(4px, 4px); box-shadow: 0px 0px 0px #000; }
+.expense-salary-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.expense-salary-value {
+  font-size: 1.2rem;
+  color: var(--text-main);
+  font-weight: 900;
+}
+
+/* Expense Table */
+.expense-table-wrapper {
+  overflow-x: auto;
+  border: var(--border-brutal);
+  box-shadow: var(--shadow-brutal);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+}
+.expense-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.expense-table thead {
+  background: var(--bento-3);
+}
+.expense-table th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 900;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-main);
+  border-bottom: 3px solid #000;
+}
+.expense-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  color: var(--text-main);
+  font-weight: 600;
+}
+.expense-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Expense row animation */
+.expense-row {
+  opacity: 0;
+  animation: expFadeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: background 0.2s;
+}
+.expense-row:hover {
+  background: var(--bento-1);
+}
+@keyframes expFadeIn {
+  0% { opacity: 0; transform: translateX(-10px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* Column widths */
+.exp-col-stt { width: 40px; text-align: center !important; font-weight: 900; color: var(--text-muted); }
+.exp-col-name { min-width: 100px; }
+.exp-col-amount { min-width: 110px; white-space: nowrap; color: var(--accent); font-weight: 800; }
+.exp-col-balance { min-width: 110px; white-space: nowrap; font-weight: 800; }
+.exp-col-balance.negative { color: #ff4444; }
+.exp-col-action { width: 44px; text-align: center; }
+
+/* Expense Footer */
+.expense-footer {
+  margin-top: 16px;
+  background: var(--card-bg);
+  border: var(--border-brutal);
+  box-shadow: var(--shadow-brutal);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.expense-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 1rem;
+}
+.expense-total-value {
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+/* Expense Empty State */
+.expense-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  background: var(--card-bg);
+  border: var(--border-brutal);
+  box-shadow: var(--shadow-brutal);
+  border-radius: var(--radius-md);
+}
+.expense-empty .empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 12px;
+}
+.expense-empty p {
+  font-weight: 800;
+  font-size: 1.1rem;
+  margin: 0 0 6px 0;
+}
+.expense-empty small {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
 
 /* --- FAB --- */
 .fab-main {
@@ -683,12 +745,11 @@ input[type="checkbox"]:active {
 /* --- Toast Notification --- */
 .toast-container {
   position: fixed; 
-  top: 0; 
+  top: 20px; 
   left: 50%; 
   transform: translateX(-50%);
-  width: 100%;
-  max-width: 600px;
-  padding: 26px;
+  width: calc(100% - 40px);
+  max-width: 560px;
   z-index: 10001;
   display: grid;
   pointer-events: none;
@@ -698,7 +759,7 @@ input[type="checkbox"]:active {
   width: 100%;
   box-sizing: border-box;
   background: var(--card-bg); color: var(--text-main, #000);
-  padding: 10px;
+  padding: 22px 20px;
   border-radius: var(--radius-lg); 
   border: var(--border-brutal); 
   box-shadow: var(--shadow-brutal);
@@ -831,19 +892,15 @@ body.theme-rose .shift-btn.active { background: #AF7987; color: #fff; }
 body.theme-rose .btn-eye { background: rgba(255,245,247,0.9); border-color: #c48a96; box-shadow: 2px 2px 0px #b07a86; color: #94676E; }
 body.theme-rose .btn-eye:hover { box-shadow: 0 0 0 #b07a86; }
 body.theme-rose .bento-money .btn-eye { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); box-shadow: none; color: #fce8ee; }
-body.theme-rose .sch-card { background: rgba(255,245,247,0.9); border-color: #d4a0ab; box-shadow: 0 4px 16px rgba(148,103,110,0.15); }
-body.theme-rose .sch-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(148,103,110,0.25); }
-body.theme-rose .sch-card.sch-today { background: #fce8ee; }
-body.theme-rose .sch-date-badge { background: #d4899b; border-color: #c48a96; box-shadow: 2px 2px 0px #b07a86; }
-body.theme-rose .sch-weekday { color: #fff; }
-body.theme-rose .sch-day { color: #fff; }
-body.theme-rose .sch-time { color: #3d1f28; }
-body.theme-rose .sch-dur { color: #6b3d4a; }
-body.theme-rose .sch-bottom { border-color: #d4a0ab; }
-body.theme-rose .sch-btn-edit { background: rgba(255,245,247,0.9); border-color: #c48a96; box-shadow: 2px 2px 0px #b07a86; color: #94676E; }
-body.theme-rose .sch-btn-del { background: #AF7987; border-color: #94676E; box-shadow: 2px 2px 0px #94676E; color: #fff; }
-body.theme-rose .sch-btn-checkin { background: #AF7987; border-color: #94676E; box-shadow: 0 4px 16px rgba(148,103,110,0.3); color: #fff; }
-body.theme-rose .sch-btn-checkin:hover { box-shadow: 0 6px 20px rgba(148,103,110,0.4); background: #94676E; }
+body.theme-rose .expense-table-wrapper { border-color: #c48a96; box-shadow: 0 4px 16px rgba(148,103,110,0.15); background: rgba(255,245,247,0.9); }
+body.theme-rose .expense-table thead { background: #f5c6d2; }
+body.theme-rose .expense-table th { border-color: #c48a96; color: #3d1f28; }
+body.theme-rose .expense-table td { border-color: rgba(196,138,150,0.2); color: #3d1f28; }
+body.theme-rose .expense-row:hover { background: #fce8ee; }
+body.theme-rose .expense-salary-display { background: #f5c6d2; border-color: #c48a96; box-shadow: 2px 2px 0px #b07a86; }
+body.theme-rose .expense-footer { background: rgba(255,245,247,0.9); border-color: #c48a96; box-shadow: 0 4px 16px rgba(148,103,110,0.15); }
+body.theme-rose .expense-empty { background: rgba(255,245,247,0.9); border-color: #c48a96; box-shadow: 0 4px 16px rgba(148,103,110,0.15); }
+body.theme-rose .expense-total-value { color: #AF7987; }
 body.theme-rose .toast { background: rgba(255,245,247,0.85); border-color: #d4a0ab; box-shadow: 0 4px 16px rgba(148,103,110,0.15); color: #3d1f28; backdrop-filter: blur(8px); }
 body.theme-rose .toast.toast-error i { color: #94676E; }
 body.theme-rose .toast.toast-success i { color: #AF7987; }
@@ -883,7 +940,7 @@ body.theme-rose ::-webkit-scrollbar-thumb { background: #AF7987; border-color: #
 body.theme-rose ::-webkit-scrollbar-thumb:hover { background: #94676E; }
 body.theme-rose .progress-wrapper .badge-icon { filter: drop-shadow(3px 3px 0px #b07a86); }
 body.theme-rose .progress-wrapper .badge-icon polygon { stroke: #c48a96; }
-body.theme-rose .schedule-header h3 { color: #3d1f28; border-color: #c48a96; }
+body.theme-rose .expense-header h3 { color: #3d1f28; border-color: #c48a96; }
 
 /* Forest -> Mint */
 body.theme-forest { --bg-color: #dcfce7; --card-bg: #fff; --bento-1: #bbf7d0; --bento-2: #fef08a; --bento-3: #a7f3d0; --primary: #4ade80; }
@@ -982,8 +1039,7 @@ body.theme-amoled { --bg-color: #121212; --card-bg: #1e1e1e; --bento-1: #2d2d2d;
   .app-container { padding: 16px 12px; padding-bottom: 100px; }
   .header-panel { padding: 12px; }
   .greeting-popup { top: 16px; width: calc(100% - 24px); }
-  .toast-container { padding: 16px 12px; }
-  .toast { padding: 20px; }
+  .toast-container { top: 16px; width: calc(100% - 24px); }
   .logo-text { font-size: 1.2rem; }
   
   .tabs-nav { padding: 6px 8px; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
@@ -1015,13 +1071,13 @@ body.theme-amoled { --bg-color: #121212; --card-bg: #1e1e1e; --bento-1: #2d2d2d;
   .shift-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .shift-btn { padding: 14px; font-size: 1rem; }
   
-  .sch-card { padding: 16px; margin-bottom: 16px; }
-  .sch-date-badge { width: 50px; height: 50px; }
-  .sch-day { font-size: 1.2rem; }
-  .sch-time { font-size: 1.1rem; }
-  .sch-btn-checkin { padding: 10px 18px; font-size: 0.85rem; }
-  .sch-btn-edit, .sch-btn-del { width: 36px; height: 36px; font-size: 14px; }
-  .schedule-header h3 { font-size: 1.2rem; }
+  .expense-header h3 { font-size: 1.2rem; }
+  .expense-salary-display { padding: 10px 12px; }
+  .expense-salary-value { font-size: 1rem; }
+  .expense-table { font-size: 0.85rem; }
+  .expense-table th, .expense-table td { padding: 10px 8px; }
+  .expense-footer { padding: 12px 14px; }
+  .expense-total-value { font-size: 1rem; }
 }
 
 /* =========================================

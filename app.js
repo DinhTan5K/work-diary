@@ -70,6 +70,7 @@ btnPrivacyList.forEach(btn => {
 
 const COL = collection(db, "work_logs");
 const SCH_COL = collection(db, "work_schedule");
+const EXP_COL = collection(db, "work_schedule");
 let USER_WAGE = parseInt(localStorage.getItem('shift_wage')) || 25000;
 let TARGET_HOURS = parseInt(localStorage.getItem('kaito_target_hours')) || 200;
 let TARGET_DAYS = parseInt(localStorage.getItem('kaito_target_days')) || 27;
@@ -135,9 +136,57 @@ const $ = q => document.querySelector(q);
 const fmtMoney = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 const getDayName = (d) => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()];
 
+window.showConfirm = function(msg) {
+  return new Promise(resolve => {
+    const dialog = $("#customDialog");
+    $("#customDialogTitle").innerText = "Xác nhận";
+    $("#customDialogMessage").innerText = msg;
+    $("#customDialogInputGroup").style.display = "none";
+    dialog.classList.remove("hidden");
+
+    const cleanup = () => {
+      $("#btnDialogConfirm").onclick = null;
+      $("#btnDialogCancel").onclick = null;
+      $("#btnCloseDialogTop").onclick = null;
+      dialog.classList.add("hidden");
+    };
+
+    $("#btnDialogConfirm").onclick = () => { cleanup(); resolve(true); };
+    const cancelFn = () => { cleanup(); resolve(false); };
+    $("#btnDialogCancel").onclick = cancelFn;
+    $("#btnCloseDialogTop").onclick = cancelFn;
+  });
+};
+
+window.showPrompt = function(msg, defaultVal = "") {
+  return new Promise(resolve => {
+    const dialog = $("#customDialog");
+    $("#customDialogTitle").innerText = "Nhập thông tin";
+    $("#customDialogMessage").innerText = msg;
+    const inputGroup = $("#customDialogInputGroup");
+    const input = $("#customDialogInput");
+    inputGroup.style.display = "block";
+    input.value = defaultVal;
+    dialog.classList.remove("hidden");
+    input.focus();
+
+    const cleanup = () => {
+      $("#btnDialogConfirm").onclick = null;
+      $("#btnDialogCancel").onclick = null;
+      $("#btnCloseDialogTop").onclick = null;
+      dialog.classList.add("hidden");
+    };
+
+    $("#btnDialogConfirm").onclick = () => { cleanup(); resolve(input.value); };
+    const cancelFn = () => { cleanup(); resolve(null); };
+    $("#btnDialogCancel").onclick = cancelFn;
+    $("#btnCloseDialogTop").onclick = cancelFn;
+  });
+};
+
 let selectedShift = null;
 let customMode = false;
-let isLoggingSchedule = false;
+let currentMonthSalary = 0;
 let editModeId = null;
 
 let viewMonth = new Date().getMonth();
@@ -177,9 +226,9 @@ function renderShifts() {
   grid.appendChild(customBtn);
 }
 
-window.deleteShiftPreset = (e, idx) => {
+window.deleteShiftPreset = async (e, idx) => {
   e.stopPropagation();
-  if(confirm("Bạn có chắc muốn xóa ca mẫu này?")) {
+  if(await showConfirm("Bạn có chắc muốn xóa ca mẫu này?")) {
     savedShifts.splice(idx, 1);
     localStorage.setItem('preset_shifts', JSON.stringify(savedShifts));
     renderShifts();
@@ -242,6 +291,15 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.classList.add("active");
     const target = btn.getAttribute("data-target");
     document.getElementById(target).classList.add("active");
+    
+    // FAB Logic
+    if (target === "tab-expense") {
+      $("#fab").style.display = "none";
+      $("#fab-expense").style.display = "flex";
+    } else {
+      $("#fab").style.display = "flex";
+      $("#fab-expense").style.display = "none";
+    }
   };
 });
 
@@ -255,7 +313,7 @@ if ($("#btnGoToDiary")) {
 const toggleModal = (show) => $("#logModal").classList.toggle("hidden", !show);
 
 $("#fab").onclick = () => {
-  isLoggingSchedule = false;
+  // normal work log mode
   $("#modalTitle").innerText = "Ca làm việc mới";
   $("#inpNote").closest('.field-group').style.display = "block";
 
@@ -280,33 +338,39 @@ $("#fab").onclick = () => {
   toggleModal(true);
 };
 
-$("#fab-schedule").onclick = () => {
-  isLoggingSchedule = true;
-  $("#modalTitle").innerText = "Thêm lịch làm việc";
-  $("#inpNote").closest('.field-group').style.display = "none";
-
-  $("#customShift").style.display = "none";
-  $("#customStart").value = "";
-  $("#customEnd").value = "";
-  
-  const chk = $("#chkSavePreset");
-  if(chk) chk.checked = false;
-
-  customMode = false;
-  selectedShift = null;
-
-  renderShifts(); 
-
-  $("#workDate").value =
-    new Date().toISOString().split("T")[0];
-
-  $("#inpNote").value = "";
-
-  toggleModal(true);
+$("#fab-expense").onclick = () => {
+  $("#expenseModalTitle").innerText = "Thêm chi tiêu";
+  $("#inpExpenseName").value = "";
+  $("#inpExpenseAmount").value = "";
+  $("#expenseModal").classList.remove("hidden");
 };
 
 $("#btnCancel").onclick = () => { toggleModal(false); editModeId = null; };
 $("#btnCloseTop").onclick = () => { toggleModal(false); editModeId = null; };
+
+// Expense Modal handlers
+$("#btnCloseExpense").onclick = () => $("#expenseModal").classList.add("hidden");
+$("#btnCancelExpense").onclick = () => $("#expenseModal").classList.add("hidden");
+$("#btnSaveExpense").onclick = async () => {
+  const name = $("#inpExpenseName").value.trim();
+  const amount = parseInt($("#inpExpenseAmount").value);
+  if (!name) { showToast("Nhập tên chi tiêu!", "error"); return; }
+  if (!amount || amount <= 0) { showToast("Nhập số tiền hợp lệ!", "error"); return; }
+  $("#btnSaveExpense").innerText = "Đang lưu...";
+  $("#btnSaveExpense").disabled = true;
+  await addDoc(EXP_COL, {
+    name, amount,
+    month: viewMonth + 1,
+    year: viewYear,
+    uid: auth.currentUser.uid,
+    createdAt: Date.now()
+  });
+  $("#btnSaveExpense").innerText = "Lưu chi tiêu";
+  $("#btnSaveExpense").disabled = false;
+  $("#expenseModal").classList.add("hidden");
+  showToast("Thêm chi tiêu thành công!", "success");
+  renderExpenses();
+};
 
 $("#btnSave").onclick = async () => {
   if (customMode) {
@@ -350,95 +414,88 @@ $("#btnSave").onclick = async () => {
   $("#btnSave").innerText = "Đang lưu..."; $("#btnSave").disabled = true;
   const dur = end - start;
 
-  if (isLoggingSchedule) {
-    if (editModeId) {
-      await updateDoc(doc(db, "work_schedule", editModeId), { start, end, duration: dur });
-      showToast("Cập nhật lịch thành công!", "success");
-    } else {
-      await addDoc(SCH_COL, { start, end, duration: dur, uid: auth.currentUser.uid });
-      showToast("Thêm lịch thành công!", "success");
-    }
+  const wage = Math.round(USER_WAGE * (dur / 3600000));
+  if (editModeId) {
+    await updateDoc(doc(db, "work_logs", editModeId), { start, end, duration: dur, totalMoney: wage, note: $("#inpNote").value });
+    showToast("Cập nhật ca làm thành công!", "success");
   } else {
-    const wage = Math.round(USER_WAGE * (dur / 3600000));
-    if (editModeId) {
-      await updateDoc(doc(db, "work_logs", editModeId), { start, end, duration: dur, totalMoney: wage, note: $("#inpNote").value });
-      showToast("Cập nhật ca làm thành công!", "success");
-    } else {
-      await addDoc(COL, { start, end, duration: dur, wageRate: USER_WAGE, totalMoney: wage, note: $("#inpNote").value, uid: auth.currentUser.uid });
-      showToast("Lưu ca làm thành công!", "success");
-    }
+    await addDoc(COL, { start, end, duration: dur, wageRate: USER_WAGE, totalMoney: wage, note: $("#inpNote").value, uid: auth.currentUser.uid });
+    showToast("Lưu ca làm thành công!", "success");
   }
 
   $("#btnSave").innerText = "Lưu lại"; $("#btnSave").disabled = false;
   toggleModal(false); 
-  if (isLoggingSchedule) renderSchedule(); else render();
+  render();
 };
 
-// --- RENDER SCHEDULE ---
-async function renderSchedule() {
-  const tl = $("#schedule-timeline");
-  tl.innerHTML = `<div id="skeletonLoader"><div class="skeleton-card"></div></div>`;
-  const q = query(SCH_COL, where("uid", "==", auth.currentUser.uid));
+// --- RENDER EXPENSES ---
+async function renderExpenses() {
+  const tbody = $("#expenseTableBody");
+  const emptyEl = $("#expenseEmpty");
+  const wrapperEl = $("#expenseTableWrapper");
+  const footerEl = $("#expenseFooter");
+  if (!tbody) return;
+
+  // Get current month salary from render()
+  const salaryEl = $("#expenseSalaryValue");
+  if (salaryEl) salaryEl.innerText = fmtMoney(currentMonthSalary);
+
+  // Fetch expenses for current month
+  const q = query(EXP_COL, where("uid", "==", auth.currentUser.uid));
   const snap = await getDocs(q);
-  const schLogs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.start - b.start);
-  
-  tl.innerHTML = "";
-  if (schLogs.length === 0) {
-    tl.innerHTML = `<div style="text-align:center; padding: 40px 20px; color: var(--text-muted);">Cụ chưa có lịch trình nào sắp tới.</div>`;
+  const expenses = snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(e => e.month === (viewMonth + 1) && e.year === viewYear)
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+  tbody.innerHTML = "";
+
+  if (expenses.length === 0) {
+    if (wrapperEl) wrapperEl.style.display = "none";
+    if (footerEl) footerEl.style.display = "none";
+    if (emptyEl) emptyEl.style.display = "block";
     return;
   }
 
-  schLogs.forEach((l, idx) => {
-    const d = new Date(l.start);
-    const wk = getDayName(d);
-    const day = d.getDate();
-    const month = d.getMonth() + 1;
-    const sT = new Date(l.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
-    const eT = new Date(l.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
-    const h = (l.duration/3600000).toFixed(1);
+  if (wrapperEl) wrapperEl.style.display = "block";
+  if (footerEl) footerEl.style.display = "block";
+  if (emptyEl) emptyEl.style.display = "none";
 
-    // Check if schedule is today
-    const today = new Date();
-    const isToday = d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
-
-    const div = document.createElement("div");
-    div.className = `sch-card${isToday ? ' sch-today' : ''}`;
-    div.style.animationDelay = `${idx * 0.07}s`;
-    
-    div.innerHTML = `
-      <div class="sch-top">
-        <div class="sch-date-badge">
-          <span class="sch-weekday">${wk}</span>
-          <span class="sch-day">${day}/${month}</span>
-        </div>
-        <div class="sch-time-info">
-          <div class="sch-time">${sT} – ${eT}</div>
-          <span class="sch-dur">${h} giờ</span>
-        </div>
-      </div>
-      <div class="sch-bottom">
-        <div class="sch-actions-left">
-          <button class="sch-btn-edit" onclick="editSchedule('${l.id}', ${l.start}, ${l.end})" title="Sửa lịch này"><i class="fa-solid fa-pen-to-square"></i></button>
-          <button class="sch-btn-del" onclick="delSchedule('${l.id}')" title="Xóa lịch này"><i class="fa-solid fa-trash-can"></i></button>
-        </div>
-        <button class="sch-btn-checkin" onclick="checkIn('${l.id}', ${l.start}, ${l.end}, ${l.duration})">
-          <i class="fa-solid fa-circle-check"></i> Chấm công
+  let runningTotal = 0;
+  expenses.forEach((exp, idx) => {
+    runningTotal += exp.amount;
+    const balance = currentMonthSalary - runningTotal;
+    const tr = document.createElement("tr");
+    tr.className = "expense-row";
+    tr.style.animationDelay = `${idx * 0.05}s`;
+    tr.innerHTML = `
+      <td class="exp-col-stt">${idx + 1}</td>
+      <td class="exp-col-name">${exp.name}</td>
+      <td class="exp-col-amount"> -${fmtMoney(exp.amount)}</td>
+      <td class="exp-col-balance ${balance < 0 ? 'negative' : ''}">${fmtMoney(balance)}</td>
+      <td class="exp-col-action">
+        <button class="btn-mini del" onclick="delExpense('${exp.id}')" title="Xóa">
+          <i class="fa-solid fa-trash"></i>
         </button>
-      </div>
+      </td>
     `;
-    tl.appendChild(div);
+    tbody.appendChild(tr);
   });
+
+  // Update footer
+  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const balance = currentMonthSalary - runningTotal;
+  $("#expenseTotalSpent").innerText = fmtMoney(totalSpent);
+ $("#expenseTotalBalance").innerText = fmtMoney(balance);
+  
 }
 
-window.checkIn = async (id, start, end, duration) => {
-  if(!confirm("Đã hoàn thành ca này và ném vào Nhật Ký Lương?")) return;
-  const wage = Math.round(USER_WAGE * (duration / 3600000));
-  await addDoc(COL, { start, end, duration: duration, wageRate: USER_WAGE, totalMoney: wage, note: "", uid: auth.currentUser.uid });
-  await deleteDoc(doc(db,"work_schedule",id));
-  showToast("Chấm công thành công!", "success");
-  renderSchedule();
-  render();
-
+window.delExpense = async (id) => {
+  if (await showConfirm("Xóa khoản chi tiêu này?")) {
+    await deleteDoc(doc(db, "work_schedule", id));
+    showToast("Đã xóa chi tiêu!", "success");
+    renderExpenses();
+  }
 };
 
 // --- RENDER ---
@@ -538,6 +595,7 @@ async function render() {
   const grandTotalHours = parseFloat((totalDurationAll / 3600000).toFixed(1));
   
   mMoney = totalHours * USER_WAGE;
+  currentMonthSalary = mMoney;
   totalMoneyAll = grandTotalHours * USER_WAGE;
 
   const uniqueDays = new Set(filteredLogs.map(l => new Date(l.start).getDate())).size;
@@ -597,7 +655,9 @@ async function render() {
     });
   }
 
-  // Cập nhật thành tựu (Thêm mới)
+  // Update expense tracker salary display
+  renderExpenses();
+
   if (window.checkAchievements) {
     window.checkAchievements(filteredLogs, mMoney);
   }
@@ -660,20 +720,13 @@ async function render() {
   }
 }
 
-window.updateNote = async (id, old) => { const n = prompt("Sửa ghi chú:", old); if(n!==null) { await updateDoc(doc(db,"work_logs",id),{note:n}); render(); }};
-window.del = async (id) => { if(confirm("Xóa ca làm này khỏi Nhật Ký?")) { await deleteDoc(doc(db,"work_logs",id)); render(); }};
-window.delSchedule = async (id) => { if(confirm("Hủy lịch làm việc này?")) { await deleteDoc(doc(db,"work_schedule",id)); showToast("Đã xóa lịch!", "success"); renderSchedule(); }};
+window.updateNote = async (id, old) => { const n = await showPrompt("Sửa ghi chú:", old); if(n!==null) { await updateDoc(doc(db,"work_logs",id),{note:n}); render(); }};
+window.del = async (id) => { if(await showConfirm("Xóa ca làm này khỏi Nhật Ký?")) { await deleteDoc(doc(db,"work_logs",id)); render(); }};
 
 window.editLog = (id, start, end, note) => {
   editModeId = id;
-  isLoggingSchedule = false;
+  // editing work log
   openEditModal("Sửa ca làm", start, end, note);
-};
-
-window.editSchedule = (id, start, end) => {
-  editModeId = id;
-  isLoggingSchedule = true;
-  openEditModal("Sửa lịch làm", start, end, "");
 };
 
 function openEditModal(title, start, end, note) {
@@ -687,7 +740,7 @@ function openEditModal(title, start, end, note) {
   $("#inpNote").value = note;
   
   $("#modalTitle").innerText = title;
-  $("#inpNote").closest('.field-group').style.display = isLoggingSchedule ? "none" : "block";
+  $("#inpNote").closest('.field-group').style.display = "block";
   
   // Set custom mode
   document.querySelectorAll(".shift-btn").forEach(b => b.classList.remove("active", "selected"));
@@ -889,9 +942,9 @@ $("#btnNextMonth").onclick = () => {
 const btnRescue = $("#btnRescue");
 if (btnRescue) {
   btnRescue.onclick = async () => {
-    const oldUid = prompt("Nhập UID cũ của tài khoản bị mất pass (ví dụ: YpVDNW6...):");
+    const oldUid = await showPrompt("Nhập UID cũ của tài khoản bị mất pass (ví dụ: YpVDNW6...):");
     if(!oldUid) return;
-    if(!confirm(`Chắc chắn muốn chuyển toàn bộ dữ liệu từ UID [${oldUid}] sang tài khoản hiện tại không?`)) return;
+    if(!(await showConfirm(`Chắc chắn muốn chuyển toàn bộ dữ liệu từ UID [${oldUid}] sang tài khoản hiện tại không?`))) return;
     try {
       btnRescue.disabled = true;
       let count = 0;
@@ -904,17 +957,9 @@ if (btnRescue) {
         }
       }
 
-      const snapSch = await getDocs(SCH_COL);
-      for (let d of snapSch.docs) {
-        if (d.data().uid === oldUid) {
-          await updateDoc(doc(db, "work_schedule", d.id), { uid: auth.currentUser.uid });
-          count++;
-        }
-      }
-
       showToast(`Đã cứu thành công ${count} mục từ UID cũ!`, "success");
       render();
-      renderSchedule();
+      renderExpenses();
     } catch(e) {
       showToast("Lỗi: " + e.message, "error");
     } finally {
@@ -1008,7 +1053,7 @@ onAuthStateChanged(auth, (user) => {
     const lblUserRole = $("#lblUserRole");
     if (lblUserRole) lblUserRole.innerText = "KIN";
     render();
-    renderSchedule();
+    renderExpenses();
   } else {
     if (authScreen) authScreen.style.display = "flex";
     if (mainApp) mainApp.style.display = "none";
