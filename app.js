@@ -450,6 +450,19 @@ async function renderExpenses() {
 
   tbody.innerHTML = "";
 
+  // Update footer values ALWAYS, even if there are no expenses
+  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const balance = currentMonthSalary - totalSpent;
+  if ($("#expenseTotalSpent")) $("#expenseTotalSpent").innerText = fmtMoney(totalSpent);
+  if ($("#expenseTotalBalance")) {
+    $("#expenseTotalBalance").innerText = fmtMoney(balance);
+    if (balance < 0) {
+      $("#expenseTotalBalance").classList.add("negative");
+    } else {
+      $("#expenseTotalBalance").classList.remove("negative");
+    }
+  }
+
   if (expenses.length === 0) {
     if (wrapperEl) wrapperEl.style.display = "none";
     if (footerEl) footerEl.style.display = "none";
@@ -464,7 +477,7 @@ async function renderExpenses() {
   let runningTotal = 0;
   expenses.forEach((exp, idx) => {
     runningTotal += exp.amount;
-    const balance = currentMonthSalary - runningTotal;
+    const currentBalance = currentMonthSalary - runningTotal;
     const tr = document.createElement("tr");
     tr.className = "expense-row";
     tr.style.animationDelay = `${idx * 0.05}s`;
@@ -472,7 +485,7 @@ async function renderExpenses() {
       <td class="exp-col-stt">${idx + 1}</td>
       <td class="exp-col-name">${exp.name}</td>
       <td class="exp-col-amount"> -${fmtMoney(exp.amount)}</td>
-      <td class="exp-col-balance ${balance < 0 ? 'negative' : ''}">${fmtMoney(balance)}</td>
+      <td class="exp-col-balance ${currentBalance < 0 ? 'negative' : ''}">${fmtMoney(currentBalance)}</td>
       <td class="exp-col-action">
         <button class="btn-mini del" onclick="delExpense('${exp.id}')" title="Xóa">
           <i class="fa-solid fa-trash"></i>
@@ -481,13 +494,6 @@ async function renderExpenses() {
     `;
     tbody.appendChild(tr);
   });
-
-  // Update footer
-  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const balance = currentMonthSalary - runningTotal;
-  $("#expenseTotalSpent").innerText = fmtMoney(totalSpent);
- $("#expenseTotalBalance").innerText = fmtMoney(balance);
-  
 }
 
 window.delExpense = async (id) => {

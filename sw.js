@@ -2,8 +2,8 @@
 // Service Worker - Auto Update + Offline + Custom Logo
 // =============================================
 
-// BƯỚC 1: Đổi cái này thành v4 để nó bắt đầu reset lại toàn bộ
-const CACHE_VERSION = 'kaito-v4'; 
+// BƯỚC 1: Đổi cái này thành v để nó bắt đầu reset lại toàn bộ
+const CACHE_VERSION = 'kaito-v6'; 
 const LOGO_CACHE = 'logo-cache-v1';
 
 const APP_FILES = [
