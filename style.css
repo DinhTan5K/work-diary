@@ -216,6 +216,31 @@ body.theme-rose .greeting-popup { background: rgba(255,245,247,0.95); border-col
 .brendan3-walk-right { background-position-y: -140px !important; } 
 .brendan3-walk-up { background-position-y: -210px !important; }
 
+/* --- New Pet (Warrior) --- */
+.new1-pet {
+  width: 125px; 
+  height: 125px; 
+  background-image: url('new1.png');
+  background-repeat: no-repeat;
+  background-size: 500px 500px; /* 4x4 grid, mỗi frame 125x125 */
+  
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 10000; 
+  
+  animation: new1Walk 0.8s steps(4) infinite;
+  image-rendering: pixelated; 
+}
+
+@keyframes new1Walk {
+  from { background-position-x: 0px; }
+  to { background-position-x: -500px; }
+}
+
+.new1-skill-1 { background-position-y: 0px !important; }    /* Row 1 - Skill 1 */
+.new1-skill-2 { background-position-y: -125px !important; } /* Row 2 - Skill 2 */
+.new1-skill-3 { background-position-y: -250px !important; } /* Row 3 - Skill 3 */
+.new1-skill-4 { background-position-y: -375px !important; } /* Row 4 - Skill 4 */
 
 
 /* --- Bottom Navigation Bar --- */

@@ -3,14 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const showSprites = localStorage.getItem('kaito_show_sprites') !== 'false';
   if (!showSprites) return;
 
-  const petWidth = 70; 
-  const petHeight = 70; 
-
   const hour = new Date().getHours();
   let numPets = 0;
-  if (hour >= 5 && hour < 12) numPets = 3; // Ca sáng: 3 con
-  else if (hour >= 12 && hour < 18) numPets = 2; // Ca trưa/chiều: 2 con
-  else if (hour >= 18 && hour < 22) numPets = 1; // Ca tối: 1 con
+  if (hour >= 5 && hour < 12) numPets = 4; // Ca sáng: 4 con
+  else if (hour >= 12 && hour < 18) numPets = 3; // Ca trưa/chiều: 3 con
+  else if (hour >= 18 && hour < 22) numPets = 2; // Ca tối: 2 con
   else numPets = 0; // Khuya: nghỉ ngơi
 
   const allPetsConfig = [
@@ -30,10 +27,23 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     {
       className: 'brendan3-pet',
-      x: window.innerWidth - petWidth - 10,
+      x: window.innerWidth - 80,
       speed: 1.1,
       dir: 'left',
       cls: { left: 'brendan3-walk-left', right: 'brendan3-walk-right', down: 'brendan3-walk-down', up: 'brendan3-walk-up' }
+    },
+    {
+      className: 'new1-pet',
+      x: window.innerWidth / 3,
+      speed: 1.2,
+      dir: 'right',
+      width: 125,
+      height: 120,
+      scale: 0.75,
+      flipOnLeft: true,
+      skills: ['new1-skill-1', 'new1-skill-2', 'new1-skill-3', 'new1-skill-4'],
+      skillInterval: 2000, // Đổi skill mỗi 2 giây
+      cls: { left: 'new1-skill-4', right: 'new1-skill-4', down: 'new1-skill-4', up: 'new1-skill-4' }
     }
   ];
 
@@ -44,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     el.classList.add(config.className);
     // Style để có thể kéo thả dễ dàng hơn, và hiển thị "tay" khi di chuột
     el.style.cursor = 'grab';
+    el.style.transformOrigin = 'bottom center'; // Anchor bottom cho việc scale không bị lệch xuống đất
     document.body.appendChild(el);
     
     const petData = {
@@ -52,12 +63,28 @@ document.addEventListener('DOMContentLoaded', () => {
       speed: config.speed,
       dir: config.dir,
       cls: config.cls,
+      width: config.width || 70,
+      height: config.height || 70,
+      scale: config.scale || 1.0,
+      flipOnLeft: config.flipOnLeft || false,
+      skills: config.skills || null,
+      currentSkill: 0,
       isDragging: false,
       dragX: 0,
       dragY: 0,
       dragOffsetX: 0,
       dragOffsetY: 0
     };
+
+    // Nếu pet có skills thì tự động xoay vòng
+    if (config.skills && config.skills.length > 0) {
+      setInterval(() => {
+        petData.currentSkill = (petData.currentSkill + 1) % config.skills.length;
+        // Cập nhật cls cho tất cả hướng
+        const skillClass = config.skills[petData.currentSkill];
+        petData.cls = { left: skillClass, right: skillClass, down: skillClass, up: skillClass };
+      }, config.skillInterval || 2000);
+    }
 
     // --- Drag and Drop Logic ---
     function startDrag(e) {
@@ -76,7 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
       petData.dragX = clientX - petData.dragOffsetX;
       petData.dragY = clientY - petData.dragOffsetY;
       
-      petData.el.style.transform = `translate3d(${petData.dragX}px, ${petData.dragY}px, 0)`;
+      let scaleX = petData.scale;
+      if (petData.flipOnLeft && petData.dir === 'left') scaleX = -petData.scale;
+      
+      petData.el.style.transform = `translate3d(${petData.dragX}px, ${petData.dragY}px, 0) scale(${scaleX}, ${petData.scale})`;
       petData.el.style.zIndex = 9999;
       
       function onMove(e) {
@@ -85,8 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const cy = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
         petData.dragX = cx - petData.dragOffsetX;
         petData.dragY = cy - petData.dragOffsetY;
+        
+        let scaleX = petData.scale;
+        if (petData.flipOnLeft && petData.dir === 'left') scaleX = -petData.scale;
+        
         // Cập nhật ngay lập tức thay vì chờ requestAnimationFrame để mượt hơn
-        petData.el.style.transform = `translate3d(${petData.dragX}px, ${petData.dragY}px, 0)`;
+        petData.el.style.transform = `translate3d(${petData.dragX}px, ${petData.dragY}px, 0) scale(${scaleX}, ${petData.scale})`;
       }
       
       function onEnd(e) {
@@ -125,21 +159,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updatePet(pet) {
+    let scaleX = pet.scale;
+    if (pet.flipOnLeft && pet.dir === 'left') scaleX = -pet.scale;
+
     if (pet.isDragging) {
       // Khi đang kéo thì chỉ update vị trí theo chuột, không đi bộ
-      pet.el.style.transform = `translate3d(${pet.dragX}px, ${pet.dragY}px, 0)`;
+      pet.el.style.transform = `translate3d(${pet.dragX}px, ${pet.dragY}px, 0) scale(${scaleX}, ${pet.scale})`;
       return;
     }
 
-    const W = window.innerWidth - petWidth;
+    const W = window.innerWidth - pet.width;
     const nav = document.querySelector('.tabs-nav');
     
     // Mặc định đi dưới cùng màn hình
-    let floorY = window.innerHeight - petHeight;
+    let floorY = window.innerHeight - pet.height;
     
     // Nếu tab nav đang hiển thị thì đi trên viền tab nav
     if (nav && nav.offsetHeight > 0) {
-      floorY = nav.getBoundingClientRect().top - petHeight + 15;
+      floorY = nav.getBoundingClientRect().top - pet.height + 15;
     }
 
     if (pet.isFalling) {
@@ -168,12 +205,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Xóa hết class hướng cũ, cập nhật class hướng mới
-    pet.el.classList.remove(pet.cls.left, pet.cls.right, 'walk-up', 'walk-down', 'wally-walk-up', 'wally-walk-down', 'brendan3-walk-up', 'brendan3-walk-down');
+    pet.el.classList.remove(pet.cls.left, pet.cls.right, 'walk-up', 'walk-down', 'wally-walk-up', 'wally-walk-down', 'brendan3-walk-up', 'brendan3-walk-down', 'new1-skill-1', 'new1-skill-2', 'new1-skill-3', 'new1-skill-4');
     if (pet.cls[pet.dir]) {
       pet.el.classList.add(pet.cls[pet.dir]);
     }
 
-    pet.el.style.transform = `translate3d(${pet.x}px, ${pet.y}px, 0)`;
+    pet.el.style.transform = `translate3d(${pet.x}px, ${pet.y}px, 0) scale(${scaleX}, ${pet.scale})`;
   }
 
   function loop() {
