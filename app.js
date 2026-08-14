@@ -351,9 +351,19 @@ $("#btnCloseTop").onclick = () => { toggleModal(false); editModeId = null; };
 // Expense Modal handlers
 $("#btnCloseExpense").onclick = () => $("#expenseModal").classList.add("hidden");
 $("#btnCancelExpense").onclick = () => $("#expenseModal").classList.add("hidden");
+
+$("#inpExpenseAmount").addEventListener("input", function() {
+  let val = this.value.replace(/\D/g, '');
+  if (val) {
+    this.value = val.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  } else {
+    this.value = "";
+  }
+});
+
 $("#btnSaveExpense").onclick = async () => {
   const name = $("#inpExpenseName").value.trim();
-  const amount = parseInt($("#inpExpenseAmount").value);
+  const amount = parseInt($("#inpExpenseAmount").value.replace(/\./g, ''));
   if (!name) { showToast("Nhập tên chi tiêu!", "error"); return; }
   if (!amount || amount <= 0) { showToast("Nhập số tiền hợp lệ!", "error"); return; }
   $("#btnSaveExpense").innerText = "Đang lưu...";

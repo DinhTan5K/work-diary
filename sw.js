@@ -3,7 +3,7 @@
 // =============================================
 
 // BƯỚC 1: Đổi cái này thành v để nó bắt đầu reset lại toàn bộ
-const CACHE_VERSION = 'v2.0.0'; 
+const CACHE_VERSION = 'v2.0.1'; 
 const LOGO_CACHE = 'logo-cache-v1';
 
 const APP_FILES = [
