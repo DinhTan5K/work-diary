@@ -1208,28 +1208,91 @@ body.theme-amoled { --bg-color: #121212; --card-bg: #1e1e1e; --bento-1: #2d2d2d;
   font-weight: 700;
 }
 
-.rpg-history-card {
-  background: var(--primary);
-  border: 3px solid #000;
-  box-shadow: 3px 3px 0px #000;
-  padding: 16px 20px;
-  cursor: pointer;
-  transition: 0.2s ease;
+.insights-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header-streak-basic {
   display: flex;
   align-items: center;
-  border-radius: 0;
-  margin-bottom: 12px;
+  gap: 6px;
 }
-.rpg-history-card:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #000;
-  background: var(--bento-1);
+.streak-basic-icon {
+  width: 32px;
+  height: 48px;
+  background: url('chain.png') no-repeat left center;
+  background-size: 256px 48px;
+  animation: playStreakBasic 0.8s steps(8) infinite;
+  transform: scale(1.4) translateY(-8px); /* Kéo cả ngọn lửa lên để nó nằm chính giữa header */
+  transform-origin: center center;
 }
-.rpg-history-title {
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: #000;
-  text-transform: uppercase;
+@keyframes playStreakBasic {
+  100% { background-position: -256px center; }
+}
+.streak-basic-text {
+  font-family: var(--font-head);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #ff9800;
+  line-height: 1;
+  margin-top: 0;
+  transform: translateY(4px); /* Kéo nhẹ số 4 xuống bằng transform để không làm hỏng flexbox layout */
+}
+
+.insight-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.insight-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+.insight-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--card-color, #4CAF50);
+}
+.insight-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--card-color) 15%, transparent);
+  color: var(--card-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.insight-content {
+  flex-grow: 1;
+}
+.insight-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  margin-bottom: 4px;
+}
+.insight-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 /* Theme overrides for RPG Layout */
@@ -1436,76 +1499,145 @@ body.theme-amoled .cal-badge {
 }
 
 /* === ACHIEVEMENTS === */
+.achievements-grid-wrapper {
+  position: relative;
+}
 .achievements-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 10px;
   margin-top: 10px;
+  max-height: 125px; /* Chiều cao đủ cho 1 hàng badge */
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+.achievements-grid.expanded {
+  max-height: 1000px; /* Đủ lớn để hiện hết danh sách */
+}
+.achievements-fade {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, rgba(229, 229, 229, 0), rgba(229, 229, 229, 1));
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+.achievements-grid.expanded ~ .achievements-fade {
+  opacity: 0;
+}
+.btn-toggle-grid {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  background: transparent;
+  border: 2px dashed #000;
+  color: #000;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-main);
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.btn-toggle-grid:hover {
+  background: #fff;
+  border-style: solid;
+  transform: translateY(-2px);
+  box-shadow: 2px 2px 0px #000;
+}
+
 .badge-item {
+  --badge-accent: #FFD700;
   background: var(--card-bg);
-  border-radius: 12px;
-  padding: 12px 5px;
+  border-radius: 14px;
+  padding: 14px 6px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
   border: 1px solid rgba(255,255,255,0.05);
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   position: relative;
   overflow: hidden;
+  min-height: 110px;
 }
 .badge-item:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 .badge-item.locked {
   filter: grayscale(100%);
-  opacity: 0.5;
+  opacity: 0.45;
+}
+.badge-item.locked:hover {
+  filter: grayscale(80%);
+  opacity: 0.6;
 }
 .badge-icon-wrap {
-  font-size: 2rem;
-  margin-bottom: 8px;
+  font-size: 1.8rem;
+  margin-bottom: 6px;
   position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+}
+.badge-item.unlocked .badge-icon-wrap {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--badge-accent) 15%, transparent),
+    color-mix(in srgb, var(--badge-accent) 5%, transparent)
+  );
+  box-shadow: 0 0 12px color-mix(in srgb, var(--badge-accent) 20%, transparent);
 }
 .badge-icon-wrap i {
-  background: -webkit-linear-gradient(45deg, #FFD700, #FFA500);
+  background: -webkit-linear-gradient(45deg, #888, #aaa);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(255, 165, 0, 0.4));
+  font-size: 1.4rem;
+}
+.badge-item.unlocked .badge-icon-wrap i {
+  background: -webkit-linear-gradient(45deg, var(--badge-accent), color-mix(in srgb, var(--badge-accent) 70%, #fff));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--badge-accent) 40%, transparent));
 }
 .badge-item.locked .badge-icon-wrap i {
-  background: #888;
+  background: #777;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: none;
 }
 .badge-name {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   font-family: var(--font-head);
   color: var(--text-color);
-}
-.badge-desc {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  margin-top: 4px;
+  line-height: 1.2;
+  margin-top: 2px;
 }
 .badge-locked-overlay {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  background: rgba(0,0,0,0.6);
-  width: 24px;
-  height: 24px;
+  top: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.5);
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.6rem;
-  color: #fff;
+  font-size: 0.5rem;
+  color: rgba(255,255,255,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 2;
 }
 .badge-item.unlocked::before {
   content: "";
@@ -1514,10 +1646,34 @@ body.theme-amoled .cal-badge {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%);
-  animation: rotateGlow 5s linear infinite;
+  background: radial-gradient(circle, color-mix(in srgb, var(--badge-accent) 8%, transparent) 0%, transparent 70%);
+  animation: rotateGlow 6s linear infinite;
+}
+.badge-item.unlocked::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--badge-accent), transparent);
+  opacity: 0.6;
 }
 @keyframes rotateGlow {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* shimmer on unlock */
+@keyframes badgeShimmer {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+.badge-item.unlocked:hover::before {
+  animation: none;
+  background: none;
+}
+.badge-item.unlocked:hover {
+  border-color: color-mix(in srgb, var(--badge-accent) 30%, transparent);
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--badge-accent) 15%, transparent);
 }
