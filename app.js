@@ -521,6 +521,13 @@ async function render() {
   const skel = $("#skeletonLoader");
   if(!skel || !tl.contains(skel)) tl.innerHTML = `<div id="skeletonLoader"><div class="skeleton-card"></div></div>`;
 
+  // Close the day detail modal if it's open, as the data will be re-rendered
+  const detailModal = $("#dayDetailModal");
+  if (detailModal) {
+    detailModal.classList.add("hidden");
+    detailModal.style.display = "none";
+  }
+
   const q = query(COL, where("uid", "==", auth.currentUser.uid));
   const snap = await getDocs(q);
   const logs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.start - a.start);
@@ -650,22 +657,31 @@ async function render() {
     let checkDate = new Date(); checkDate.setHours(0,0,0,0);
     let yesterday = new Date(checkDate); yesterday.setDate(yesterday.getDate() - 1);
     
-    let dTodayStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth()+1).padStart(2,'0')}-${String(checkDate.getDate()).padStart(2,'0')}`;
-    let dYestStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
-    
-    let i = 0;
-    if (uniqueDatesStr.length > 0 && (uniqueDatesStr[0] === dTodayStr || uniqueDatesStr[0] === dYestStr)) {
+    if (uniqueDatesStr.length > 0) {
+      let maxActiveStreak = 0;
+      let blockStreak = 1;
+      let blockLatestDate = new Date(uniqueDatesStr[0]);
       let expectedDate = new Date(uniqueDatesStr[0]);
-      while (i < uniqueDatesStr.length) {
-         const expectedStr = `${expectedDate.getFullYear()}-${String(expectedDate.getMonth()+1).padStart(2,'0')}-${String(expectedDate.getDate()).padStart(2,'0')}`;
-         if (uniqueDatesStr[i] === expectedStr) {
-             currentStreak++;
-             expectedDate.setDate(expectedDate.getDate() - 1);
-             i++;
-         } else {
-             break;
-         }
+      expectedDate.setDate(expectedDate.getDate() - 1);
+      
+      for (let i = 1; i < uniqueDatesStr.length; i++) {
+          const expectedStr = `${expectedDate.getFullYear()}-${String(expectedDate.getMonth()+1).padStart(2,'0')}-${String(expectedDate.getDate()).padStart(2,'0')}`;
+          if (uniqueDatesStr[i] === expectedStr) {
+              blockStreak++;
+          } else {
+              if (blockLatestDate >= yesterday) {
+                  if (blockStreak > maxActiveStreak) maxActiveStreak = blockStreak;
+              }
+              blockStreak = 1;
+              blockLatestDate = new Date(uniqueDatesStr[i]);
+          }
+          expectedDate = new Date(uniqueDatesStr[i]);
+          expectedDate.setDate(expectedDate.getDate() - 1);
       }
+      if (blockLatestDate >= yesterday) {
+          if (blockStreak > maxActiveStreak) maxActiveStreak = blockStreak;
+      }
+      currentStreak = maxActiveStreak;
     }
 
     const headerStreakContainer = document.getElementById("headerStreakContainer");
@@ -761,6 +777,13 @@ window.editLog = (id, start, end, note) => {
 };
 
 function openEditModal(title, start, end, note) {
+  // Close the day detail modal to prevent stacking modals
+  const detailModal = $("#dayDetailModal");
+  if (detailModal) {
+    detailModal.classList.add("hidden");
+    setTimeout(() => { detailModal.style.display = "none"; }, 200);
+  }
+
   const d = new Date(start);
   const sT = new Date(start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
   const eT = new Date(end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
@@ -872,7 +895,7 @@ document.querySelectorAll(".theme-dot").forEach(dot => {
 });
 
 // === CUSTOM LOGO ===
-const DEFAULT_LOGO = "logo.png";
+const DEFAULT_LOGO = "img/logo.png";
 
 function applyCustomLogo(src) {
   document.querySelectorAll(".logo-img").forEach(img => img.src = src);
@@ -1260,13 +1283,14 @@ const ACHIEVEMENTS = [
   { id: 'achi-bee', name: 'Ong chăm chỉ', desc: 'Làm việc 7 ngày liên tục', icon: '<i class="fa-solid fa-bug"></i>', color: '#FFD700' },
   { id: 'achi-owl', name: 'Chiến thần ca tối', desc: '3 ngày liên tiếp có ca tối', icon: '<i class="fa-solid fa-moon"></i>', color: '#7C4DFF' },
   { id: 'achi-rich', name: 'Đại gia', desc: 'Thu nhập > 3.500.000₫', icon: '<i class="fa-solid fa-gem"></i>', color: '#E91E63' },
-  { id: 'achi-sunrise', name: 'Chiến binh bình minh', desc: '5 ngày ca sáng trong tháng', icon: '<i class="fa-solid fa-sun"></i>', color: '#FF9800' },
-  { id: 'achi-sunrise-pro', name: 'Vua ca sáng', desc: '10 ngày ca sáng trong tháng', icon: '<i class="fa-solid fa-crown"></i>', color: '#FF6F00' },
+  { id: 'achi-sunrise', name: 'Chiến binh bình minh', desc: '3 ca sáng liên tiếp', icon: '<i class="fa-solid fa-sun"></i>', color: '#FF9800' },
+  { id: 'achi-sunrise-pro', name: 'Vua ca sáng', desc: '15 ca sáng trong 1 tháng', icon: '<i class="fa-solid fa-crown"></i>', color: '#FF6F00' },
   { id: 'achi-double', name: 'Người không ngủ', desc: 'Làm 2 ca trong 1 ngày', icon: '<i class="fa-solid fa-bolt"></i>', color: '#00BCD4' },
   { id: 'achi-hours', name: 'Vua tăng ca', desc: 'Tổng > 150 giờ trong tháng', icon: '<i class="fa-solid fa-fire"></i>', color: '#FF5722' },
-  { id: 'achi-weekend', name: 'Siêu nhân cuối tuần', desc: 'Làm 3+ ngày cuối tuần', icon: '<i class="fa-solid fa-shield-halved"></i>', color: '#4CAF50' },
+  { id: 'achi-weekend', name: 'Siêu nhân cuối tuần', desc: 'Làm 5+ ngày cuối tuần', icon: '<i class="fa-solid fa-shield-halved"></i>', color: '#4CAF50' },
   { id: 'achi-newbie', name: 'Tân binh', desc: 'Ghi nhận ca đầu tiên', icon: '<i class="fa-solid fa-seedling"></i>', color: '#8BC34A' },
   { id: 'achi-marathon', name: 'Marathon', desc: 'Làm 10 ngày liên tục', icon: '<i class="fa-solid fa-person-running"></i>', color: '#2196F3' },
+  { id: 'achi-responsible', name: 'Trách nhiệm', desc: 'Đạt 27 công trong tháng', icon: '<i class="fa-solid fa-medal"></i>', color: '#9C27B0' },
 ];
 
 let currentMonthAchievements = [];
@@ -1355,7 +1379,13 @@ window.checkAchievements = (monthLogs, currentMonthMoney) => {
 
   // === Chiến binh bình minh & Vua ca sáng (morning shifts 5h-12h) ===
   let morningDayCount = 0;
-  for (const [dStr, dayLogs] of datesMap) {
+  let sunriseStreak = 0;
+  let lastMorningShiftDate = null;
+  let achievedSunrise = false;
+
+  for (let i = 0; i < uniqueDatesStr.length; i++) {
+    const dStr = uniqueDatesStr[i];
+    const dayLogs = datesMap.get(dStr);
     let hasMorningShift = false;
     for (let l of dayLogs) {
       const hour = new Date(l.start).getHours();
@@ -1364,10 +1394,27 @@ window.checkAchievements = (monthLogs, currentMonthMoney) => {
         break;
       }
     }
-    if (hasMorningShift) morningDayCount++;
+    
+    if (hasMorningShift) {
+      morningDayCount++;
+      if (!lastMorningShiftDate) {
+        sunriseStreak = 1;
+      } else {
+        const diffTime = Math.abs(new Date(dStr) - new Date(lastMorningShiftDate));
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays === 1) sunriseStreak++;
+        else sunriseStreak = 1;
+      }
+      lastMorningShiftDate = dStr;
+      
+      if (sunriseStreak >= 3) {
+        achievedSunrise = true;
+      }
+    }
   }
-  if (morningDayCount >= 5) currentMonthAchievements.push('achi-sunrise');
-  if (morningDayCount >= 10) currentMonthAchievements.push('achi-sunrise-pro');
+  
+  if (achievedSunrise) currentMonthAchievements.push('achi-sunrise');
+  if (morningDayCount >= 15) currentMonthAchievements.push('achi-sunrise-pro');
 
   // === Người không ngủ (2+ ca trong 1 ngày) ===
   for (const [dStr, dayLogs] of datesMap) {
@@ -1384,13 +1431,16 @@ window.checkAchievements = (monthLogs, currentMonthMoney) => {
   });
   if (totalHours > 150) currentMonthAchievements.push('achi-hours');
 
-  // === Siêu nhân cuối tuần (3+ ngày T7/CN có ca) ===
+  // === Siêu nhân cuối tuần (5+ ngày T7/CN có ca) ===
   let weekendCount = 0;
   for (const [dStr, dayLogs] of datesMap) {
     const dayOfWeek = new Date(dStr).getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) weekendCount++;
   }
-  if (weekendCount >= 3) currentMonthAchievements.push('achi-weekend');
+  if (weekendCount >= 5) currentMonthAchievements.push('achi-weekend');
+
+  // === Trách nhiệm (Đạt 27 công trong tháng) ===
+  if (uniqueDatesStr.length >= 27) currentMonthAchievements.push('achi-responsible');
 
   renderAchievements();
 };

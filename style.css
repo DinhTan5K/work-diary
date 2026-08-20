@@ -147,7 +147,7 @@ body.theme-rose .greeting-popup { background: rgba(255,245,247,0.95); border-col
 .brendan-pet {
   width: 70px; 
   height: 70px; 
-  background-image: url('brendan.png');
+  background-image: url('img/brendan.png');
   background-repeat: no-repeat;
   background-size: 420px 280px; /* 6x 70 ngang, 4x 70 dọc */
   
@@ -173,7 +173,7 @@ body.theme-rose .greeting-popup { background: rgba(255,245,247,0.95); border-col
 .wally-pet {
   width: 70px; 
   height: 70px; 
-  background-image: url('brendan2.png');
+  background-image: url('img/brendan2.png');
   background-repeat: no-repeat;
   background-size: 280px 280px; /* 4x 70 ngang, 4x 70 dọc */
   
@@ -199,7 +199,7 @@ body.theme-rose .greeting-popup { background: rgba(255,245,247,0.95); border-col
 .brendan3-pet {
   width: 70px; 
   height: 70px; 
-  background-image: url('brendan3.png');
+  background-image: url('img/brendan3.png');
   background-repeat: no-repeat;
   background-size: 280px 280px;
   
@@ -220,7 +220,7 @@ body.theme-rose .greeting-popup { background: rgba(255,245,247,0.95); border-col
 .new1-pet {
   width: 125px; 
   height: 125px; 
-  background-image: url('new1.png');
+  background-image: url('img/new1.png');
   background-repeat: no-repeat;
   background-size: 500px 500px; /* 4x4 grid, mỗi frame 125x125 */
   
@@ -1222,7 +1222,7 @@ body.theme-amoled { --bg-color: #121212; --card-bg: #1e1e1e; --bento-1: #2d2d2d;
 .streak-basic-icon {
   width: 32px;
   height: 48px;
-  background: url('chain.png') no-repeat left center;
+  background: url('img/chain.png') no-repeat left center;
   background-size: 256px 48px;
   animation: playStreakBasic 0.8s steps(8) infinite;
   transform: scale(1.4) translateY(-8px); /* Kéo cả ngọn lửa lên để nó nằm chính giữa header */

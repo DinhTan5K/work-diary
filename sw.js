@@ -3,7 +3,7 @@
 // =============================================
 
 // BƯỚC 1: Đổi cái này thành v để nó bắt đầu reset lại toàn bộ
-const CACHE_VERSION = 'v2.0.8'; 
+const CACHE_VERSION = 'v2.0.9'; 
 const LOGO_CACHE = 'logo-cache-v1';
 
 const APP_FILES = [
@@ -13,11 +13,11 @@ const APP_FILES = [
   './app.js',
   './brendan.js',
   './firebase.js',
-  './logo.png',
-  './brendan.png',
-  './brendan2.png',
-  './brendan3.png',
-  './new1.png',
+  './img/logo.png',
+  './img/brendan.png',
+  './img/brendan2.png',
+  './img/brendan3.png',
+  './img/new1.png',
   './manifest.json'
 ];
 
@@ -99,7 +99,7 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
   // 1. Custom logo
-  if (url.pathname.endsWith('/logo.png')) {
+  if (url.pathname.endsWith('/img/logo.png')) {
     e.respondWith(
       caches.open(LOGO_CACHE).then(cache => {
         return cache.match('/custom-logo.png').then(cached => {
