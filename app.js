@@ -1,5 +1,5 @@
 import { db, auth } from "./firebase.js"; 
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, setDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 
@@ -632,6 +632,27 @@ async function render() {
   mMoney = totalHours * USER_WAGE;
   currentMonthSalary = mMoney;
   totalMoneyAll = grandTotalHours * USER_WAGE;
+
+  if (auth.currentUser) {
+    const now = new Date();
+    const currentMonthLogs = logs.filter(l => {
+      const d = new Date(l.start);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    let realMonthDur = 0;
+    currentMonthLogs.forEach(l => realMonthDur += (l.duration || 0));
+    const realTotalHours = parseFloat((realMonthDur / 3600000).toFixed(1));
+    const realTotalMoney = realTotalHours * USER_WAGE;
+
+    const displayName = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
+    const userRef = doc(db, "users", auth.currentUser.uid);
+    setDoc(userRef, {
+      displayName: displayName,
+      totalHours: realTotalHours,
+      totalMoney: realTotalMoney,
+      lastActive: new Date().getTime()
+    }, { merge: true }).catch(e => console.error("Leaderboard sync err:", e));
+  }
 
   const uniqueDays = new Set(filteredLogs.map(l => new Date(l.start).getDate())).size;
   const allTimeUniqueDays = new Set(logs.map(l => new Date(l.start).toLocaleDateString())).size;
@@ -1443,6 +1464,7 @@ window.checkAchievements = (monthLogs, currentMonthMoney) => {
   if (uniqueDatesStr.length >= 27) currentMonthAchievements.push('achi-responsible');
 
   renderAchievements();
+  loadLeaderboard();
 };
 
 window.renderAchievements = () => {
@@ -1480,3 +1502,61 @@ window.toggleAchievements = function() {
     btn.innerHTML = 'Thu gọn <i class="fa-solid fa-chevron-up"></i>';
   }
 };
+
+
+// === LEADERBOARD LOGIC ===
+
+async function loadLeaderboard() {
+  const listEl = document.getElementById("leaderboardList");
+  listEl.innerHTML = `<div class="rank-empty"><i class="fa-solid fa-spinner fa-spin"></i> ĐANG TẢI...</div>`;
+  
+  try {
+    const snap = await getDocs(collection(db, "users"));
+    let users = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+    
+    users.sort((a, b) => (b.totalHours || 0) - (a.totalHours || 0));
+    
+    listEl.innerHTML = "";
+    
+    if (users.length === 0) {
+      listEl.innerHTML = `<div class="rank-empty"><i class="fa-solid fa-ghost"></i> Chưa có ai ở đây cả</div>`;
+      return;
+    }
+    
+    users.forEach((u, index) => {
+      const pos = index + 1;
+      let posClass = pos <= 3 ? "top-" + pos : "";
+      
+      let title = "";
+      let titleIcon = "";
+      if (pos === 1) { title = "BÀN TAY VÀNG"; titleIcon = "fa-solid fa-hand-fist"; }
+      else if (pos <= 3) { title = "CHIẾN THẦN TĂNG CA"; titleIcon = "fa-solid fa-fire"; }
+      else { title = "DÂN CÀY"; titleIcon = "fa-solid fa-seedling"; }
+      
+      const isMe = (auth.currentUser && u.uid === auth.currentUser.uid);
+      
+      const div = document.createElement("div");
+      div.className = `rank-card ${posClass} ${isMe ? "rank-me" : ""}`;
+      div.style.animationDelay = `${index * 0.06}s`;
+      div.innerHTML = `
+        <div class="rank-pos-box ${posClass}">
+          <span class="rank-hash">#</span>
+          <span class="rank-num">${pos}</span>
+        </div>
+        <div class="rank-detail">
+          <div class="rank-name-row">
+            <span class="rank-username">${u.displayName || "Ẩn danh"}</span>
+            ${isMe ? `<span class="rank-you-tag">YOU</span>` : ""}
+          </div>
+          <span class="rank-badge"><i class="${titleIcon}"></i> ${title}</span>
+        </div>
+      `;
+      listEl.appendChild(div);
+    });
+    
+  } catch(err) {
+    console.error(err);
+    listEl.innerHTML = `<div class="rank-empty"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi tải bảng xếp hạng!</div>`;
+  }
+}
+
