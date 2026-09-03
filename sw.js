@@ -3,7 +3,7 @@
 // =============================================
 
 // BƯỚC 1: Đổi cái này thành v để nó bắt đầu reset lại toàn bộ
-const CACHE_VERSION = 'v2.1.0'; 
+const CACHE_VERSION = 'v2.1.1'; 
 const LOGO_CACHE = 'logo-cache-v1';
 
 const APP_FILES = [
@@ -116,7 +116,7 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       // Thêm { cache: 'no-store' } để vượt mặt HTTP Cache của Safari/Chrome
       fetch(e.request.url, { cache: 'no-store' }).then(networkResponse => {
-        if (networkResponse && networkResponse.ok) {
+        if (networkResponse && networkResponse.ok && e.request.method === 'GET') {
           const clone = networkResponse.clone();
           caches.open(CACHE_VERSION).then(cache => cache.put(e.request, clone));
         }
@@ -133,7 +133,7 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then(cached => {
       return cached || fetch(e.request).then(networkResponse => {
-        if (networkResponse && networkResponse.ok) {
+        if (networkResponse && networkResponse.ok && e.request.method === 'GET') {
           const clone = networkResponse.clone();
           caches.open(CACHE_VERSION).then(cache => cache.put(e.request, clone));
         }
