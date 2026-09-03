@@ -15,6 +15,7 @@ const ACHIEVEMENTS = [
   { id: 'achi-newbie', name: 'Tân binh', desc: 'Ghi nhận ca đầu tiên', icon: '<i class="fa-solid fa-seedling"></i>', color: '#8BC34A' },
   { id: 'achi-marathon', name: 'Marathon', desc: 'Làm 10 ngày liên tục', icon: '<i class="fa-solid fa-person-running"></i>', color: '#2196F3' },
   { id: 'achi-responsible', name: 'Trách nhiệm', desc: 'Đạt 27 công trong tháng', icon: '<i class="fa-solid fa-medal"></i>', color: '#9C27B0' },
+  { id: 'achi-infinity', name: 'Găng Tay Vô Cực', desc: 'Đã thu thập đủ 11 viên đá thành tựu', icon: '<i class="fa-solid fa-hand-fist"></i>', color: '#8A2BE2' }
 ];
 
 export function checkAchievements(monthLogs, currentMonthMoney) {
@@ -148,6 +149,11 @@ export function checkAchievements(monthLogs, currentMonthMoney) {
 
   if (uniqueDatesStr.length >= 27) state.currentMonthAchievements.push('achi-responsible');
 
+  // Check Găng Tay Vô Cực (11 achievements max before this one)
+  if (state.currentMonthAchievements.length === 11) {
+    state.currentMonthAchievements.push('achi-infinity');
+  }
+
   renderAchievements();
   loadLeaderboard();
 }
@@ -161,6 +167,9 @@ export function renderAchievements() {
     const isUnlocked = state.currentMonthAchievements.includes(ach.id);
     const div = document.createElement("div");
     div.className = "badge-item" + (isUnlocked ? " unlocked" : " locked");
+    if (isUnlocked && ach.id === 'achi-infinity') {
+      div.classList.add('infinity-badge');
+    }
     if (isUnlocked && ach.color) {
       div.style.setProperty('--badge-accent', ach.color);
     }
@@ -218,9 +227,10 @@ export async function loadLeaderboard() {
       
       let title = "";
       let titleIcon = "";
-      if (pos === 1) { title = "BÀN TAY VÀNG"; titleIcon = "fa-solid fa-hand-fist"; }
-      else if (pos <= 3) { title = "CHIẾN THẦN TĂNG CA"; titleIcon = "fa-solid fa-fire"; }
-      else { title = "DÂN CÀY"; titleIcon = "fa-solid fa-seedling"; }
+      if (pos === 1) { title = "NÔ LỆ TƯ BẢN"; titleIcon = "fa-solid fa-hand-fist"; }
+      else if (pos == 2 ) {title = "CẦN TIỀN HƠN TÌNH"; titleIcon = "fa-solid fa-fire";}
+      else if (pos == 3) { title = "THUA MỖI TRÂU CÀY"; titleIcon = "fa-solid fa-fire"; }
+      else { title = "ĐỦ MUA TRÀ SỮA"; titleIcon = "fa-solid fa-seedling"; }
       
       const isMe = (auth.currentUser && u.uid === auth.currentUser.uid);
       

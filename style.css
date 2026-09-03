@@ -1,4 +1,4 @@
-﻿/* =========================================
+/* =========================================
    1. CORE VARIABLES & RESET (NEO-BRUTALISM)
    ========================================= */
 :root {
@@ -1677,6 +1677,46 @@ body.theme-amoled .cal-badge {
   border-color: color-mix(in srgb, var(--badge-accent) 30%, transparent);
   box-shadow: 0 6px 24px color-mix(in srgb, var(--badge-accent) 15%, transparent);
 }
+
+/* Găng Tay Vô Cực - Ultimate Badge Styling */
+@keyframes infinityGlow {
+  0% { box-shadow: 0 0 10px #ff71ce, inset 0 0 5px #ff71ce; border-color: #ff71ce; }
+  33% { box-shadow: 0 0 15px #01cdfe, inset 0 0 10px #01cdfe; border-color: #01cdfe; }
+  66% { box-shadow: 0 0 15px #05ffa1, inset 0 0 10px #05ffa1; border-color: #05ffa1; }
+  100% { box-shadow: 0 0 10px #ff71ce, inset 0 0 5px #ff71ce; border-color: #ff71ce; }
+}
+
+@keyframes infinityTextGlow {
+  0% { text-shadow: 0 0 10px #ff71ce; color: #ff71ce; }
+  33% { text-shadow: 0 0 10px #01cdfe; color: #01cdfe; }
+  66% { text-shadow: 0 0 10px #05ffa1; color: #05ffa1; }
+  100% { text-shadow: 0 0 10px #ff71ce; color: #ff71ce; }
+}
+
+.infinity-badge {
+  animation: infinityGlow 3s linear infinite;
+  background: #111;
+}
+
+.infinity-badge .badge-icon-wrap {
+  transform: scale(1.3);
+}
+
+.infinity-badge .badge-icon-wrap i {
+  -webkit-text-fill-color: initial !important;
+  -webkit-background-clip: initial !important;
+  background: none !important;
+  animation: infinityTextGlow 3s linear infinite;
+}
+
+.infinity-badge .badge-name {
+  -webkit-text-fill-color: initial !important;
+  -webkit-background-clip: initial !important;
+  background: none !important;
+  animation: infinityTextGlow 3s linear infinite;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
  / *   = = =   L E A D E R B O A R D   = = =   * / 
  . r a n k - i t e m   { 
      d i s p l a y :   f l e x ; 
@@ -1757,6 +1797,30 @@ body.theme-amoled .cal-badge {
   border-color: #000;
 }
 
+/* Hiệu ứng hào quang Luxury V.I.P cho Tab xếp hạng Top 1, 2, 3 */
+@keyframes cardGlowGold {
+  0% { box-shadow: 0 0 12px #FFD700, 0 0 25px #FFDF00, 4px 4px 0px #000; border-color: #FFDF00; }
+  100% { box-shadow: 0 0 25px #FFD700, 0 0 50px #FFA500, 4px 4px 0px #000; border-color: #FFD700; }
+}
+@keyframes cardGlowDiamond {
+  0% { box-shadow: 0 0 8px #00e5ff, 0 0 15px #00b4d8, 4px 4px 0px #000; border-color: #00e5ff; }
+  100% { box-shadow: 0 0 15px #00e5ff, 0 0 25px #0096c7, 4px 4px 0px #000; border-color: #00b4d8; }
+}
+@keyframes cardGlowRuby {
+  0% { box-shadow: 0 0 4px #ff0055, 0 0 8px #cc0044, 4px 4px 0px #000; border-color: #cc0044; }
+  100% { box-shadow: 0 0 8px #ff0055, 0 0 15px #ff3377, 4px 4px 0px #000; border-color: #ff0055; }
+}
+
+.rank-card.top-1 {
+  animation: cardGlowGold 1.2s infinite alternate, slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.rank-card.top-2 {
+  animation: cardGlowDiamond 1.5s infinite alternate, slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.rank-card.top-3 {
+  animation: cardGlowRuby 1.3s infinite alternate, slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
 /* Position Box - giong card-date */
 .rank-pos-box {
   width: 56px; height: 56px;
@@ -1775,13 +1839,13 @@ body.theme-amoled .cal-badge {
   font-size: 1.6rem; font-weight: 900;
   color: #000; line-height: 1;
 }
-.rank-pos-box.top-1 { background: #000; }
+.rank-pos-box.top-1 { background: #FFD700; }
 .rank-pos-box.top-1 .rank-hash,
-.rank-pos-box.top-1 .rank-num { color: #fff; }
-.rank-pos-box.top-2 { background: #333; }
+.rank-pos-box.top-1 .rank-num { color: #000; }
+.rank-pos-box.top-2 { background: #00e5ff; }
 .rank-pos-box.top-2 .rank-hash,
-.rank-pos-box.top-2 .rank-num { color: #fff; }
-.rank-pos-box.top-3 { background: #666; }
+.rank-pos-box.top-2 .rank-num { color: #000; }
+.rank-pos-box.top-3 { background: #ff0055; }
 .rank-pos-box.top-3 .rank-hash,
 .rank-pos-box.top-3 .rank-num { color: #fff; }
 
