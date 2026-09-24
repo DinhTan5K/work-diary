@@ -27,6 +27,7 @@
   <link id="appleIcon" rel="apple-touch-icon" sizes="180x180" href="img/logo.png">
   <link rel="apple-touch-icon" sizes="152x152" href="img/logo.png">
   <link rel="apple-touch-icon" sizes="167x167" href="img/logo.png">
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 
@@ -104,6 +105,7 @@
       <div class="header-actions">
         <button id="btnRescue" class="btn-icon" style="color: #ffaa00;" title="Cứu hộ data"><i
             class="fa-solid fa-life-ring"></i></button>
+        <button id="btnCompareExcel" class="btn-icon" style="color: #4CAF50;" title="Đối soát công Excel"><i class="fa-solid fa-file-excel"></i></button>
         <button id="btnSettings" class="btn-icon"><i class="fa-solid fa-sliders"></i></button>
         <button id="btnLogout" class="btn-icon" style="color: #ff4d4f;"><i
             class="fa-solid fa-right-from-bracket"></i></button>
@@ -539,6 +541,38 @@
       </div>
       <div class="modal-footer">
         <button id="btnCloseSettingsBottom" class="btn-primary" style="flex:1;">Xong</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- === EXCEL COMPARE MODAL === -->
+  <div id="excelCompareModal" class="modal-backdrop hidden" style="z-index: 350;">
+    <div class="modal-content" style="max-width: 600px; width: 95%;">
+      <div class="modal-header">
+        <h3 style="color: #4CAF50;"><i class="fa-solid fa-file-excel"></i> Đối soát công</h3>
+        <button id="btnCloseExcelCompare" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto;">
+        
+        <div class="field-group full" style="margin-bottom: 0;">
+          <label>Tên nhân viên (như trong Excel)</label>
+          <input type="text" id="inpExcelEmployeeName" placeholder="Ví dụ: Võ Đình Tân" style="background: var(--card-bg);">
+        </div>
+
+        <div class="field-group full" style="margin-bottom: 0;">
+          <label>Chọn file Excel (.xlsx)</label>
+          <input type="file" id="inpExcelFile" accept=".xlsx, .xls" style="padding: 10px; background: var(--card-bg); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); width: 100%; color: var(--text-color);">
+        </div>
+        
+        <button id="btnStartCompare" class="btn-primary" style="width: 100%; background: #4CAF50;">Bắt đầu đối soát</button>
+
+        <div id="excelCompareResult" style="display: none; margin-top: 10px;">
+          <h4 style="margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Kết quả đối soát:</h4>
+          <div id="excelCompareTableWrapper" style="overflow-x: auto;">
+            <!-- Kết quả sẽ chèn vào đây -->
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

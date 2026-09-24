@@ -70,6 +70,7 @@ export function initAuth() {
   if (btnLogout) {
     btnLogout.onclick = async () => {
       await signOut(auth);
+      window.location.reload();
     };
   }
 

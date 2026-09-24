@@ -1,9 +1,28 @@
 import { auth, db } from "../firebase.js";
-import { addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { addDoc, getDocs, deleteDoc, doc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { state, EXP_COL } from "./store.js";
 import { $, fmtMoney, showToast } from "./utils.js";
 
+let allExpenses = [];
+let isListeningExpenses = false;
+
 export async function renderExpenses() {
+  if (!auth.currentUser) return;
+  
+  if (!isListeningExpenses) {
+    isListeningExpenses = true;
+    const q = query(EXP_COL, where("uid", "==", auth.currentUser.uid));
+    onSnapshot(q, (snap) => {
+      allExpenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderExpensesUI();
+    });
+    return;
+  } else {
+    renderExpensesUI();
+  }
+}
+
+function renderExpensesUI() {
   const tbody = $("#expenseTableBody");
   const emptyEl = $("#expenseEmpty");
   const wrapperEl = $("#expenseTableWrapper");
@@ -13,11 +32,7 @@ export async function renderExpenses() {
   const salaryEl = $("#expenseSalaryValue");
   if (salaryEl) salaryEl.innerText = fmtMoney(state.currentMonthSalary);
 
-  if (!auth.currentUser) return;
-  const q = query(EXP_COL, where("uid", "==", auth.currentUser.uid));
-  const snap = await getDocs(q);
-  const expenses = snap.docs
-    .map(d => ({ id: d.id, ...d.data() }))
+  const expenses = allExpenses
     .filter(e => e.month === (state.viewMonth + 1) && e.year === state.viewYear)
     .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
@@ -72,7 +87,6 @@ window.delExpense = async (id) => {
   if (await showConfirm("Xóa khoản chi tiêu này?")) {
     await deleteDoc(doc(db, "work_schedule", id));
     showToast("Đã xóa chi tiêu!", "success");
-    renderExpenses();
   }
 };
 
@@ -114,6 +128,5 @@ export function initExpensesUI() {
     $("#btnSaveExpense").disabled = false;
     $("#expenseModal").classList.add("hidden");
     showToast("Thêm chi tiêu thành công!", "success");
-    renderExpenses();
   };
 }

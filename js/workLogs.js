@@ -1,12 +1,17 @@
 import { db, auth } from "../firebase.js";
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { state, COL } from "./store.js";
 import { $, fmtMoney, getDayName, showToast, animateValue } from "./utils.js";
 import { renderExpenses } from "./expenses.js";
 import { checkAchievements } from "./achievements.js";
 import { toggleModal } from "./ui.js";
 
+let allWorkLogs = [];
+let isListeningWorkLogs = false;
+let lastLeaderboardHash = "";
+
 function renderShifts() {
+
   const grid = $("#shiftGrid");
   if (!grid) return;
   grid.innerHTML = "";
@@ -84,8 +89,6 @@ export function initWorkLogs() {
         }
 
         showToast(`Đã cứu thành công ${count} mục từ UID cũ!`, "success");
-        render();
-        renderExpenses();
       } catch(e) {
         showToast("Lỗi: " + e.message, "error");
       } finally {
@@ -147,12 +150,27 @@ export function initWorkLogs() {
 
       $("#btnSave").innerText = "Lưu lại"; $("#btnSave").disabled = false;
       toggleModal(false); 
-      render();
     };
   }
 }
 
 export async function render() {
+  if (!auth.currentUser) return;
+
+  if (!isListeningWorkLogs) {
+    isListeningWorkLogs = true;
+    const q = query(COL, where("uid", "==", auth.currentUser.uid));
+    onSnapshot(q, (snap) => {
+      allWorkLogs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.start - a.start);
+      renderUI();
+    });
+    return;
+  } else {
+    renderUI();
+  }
+}
+
+async function renderUI() {
   const tl = $("#timeline");
   const calView = $("#calendar-view");
   const skel = $("#skeletonLoader");
@@ -163,12 +181,9 @@ export async function render() {
     detailModal.classList.add("hidden");
     detailModal.style.display = "none";
   }
-  
-  if (!auth.currentUser) return;
 
-  const q = query(COL, where("uid", "==", auth.currentUser.uid));
-  const snap = await getDocs(q);
-  const logs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.start - a.start);
+  const logs = allWorkLogs;
+
 
   tl.innerHTML = ""; 
   if (calView) calView.innerHTML = "";
@@ -281,13 +296,17 @@ export async function render() {
     const displayName = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
     const userRef = doc(db, "users", auth.currentUser.uid);
     const lastUpdatedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    setDoc(userRef, {
-      displayName: displayName,
-      totalHours: realTotalHours,
-      totalMoney: realTotalMoney,
-      lastActive: new Date().getTime(),
-      lastUpdatedMonth: lastUpdatedMonth
-    }, { merge: true }).catch(e => console.error("Leaderboard sync err:", e));
+    const hash = `${displayName}_${realTotalHours}_${realTotalMoney}`;
+    if (lastLeaderboardHash !== hash) {
+      lastLeaderboardHash = hash;
+      setDoc(userRef, {
+        displayName: displayName,
+        totalHours: realTotalHours,
+        totalMoney: realTotalMoney,
+        lastActive: new Date().getTime(),
+        lastUpdatedMonth: lastUpdatedMonth
+      }, { merge: true }).catch(e => console.error("Leaderboard sync err:", e));
+    }
   }
 
   const uniqueDays = new Set(filteredLogs.map(l => new Date(l.start).getDate())).size;
@@ -414,8 +433,8 @@ export async function render() {
   }
 }
 
-window.updateNote = async (id, old) => { const n = await showPrompt("Sửa ghi chú:", old); if(n!==null) { await updateDoc(doc(db,"work_logs",id),{note:n}); render(); }};
-window.del = async (id) => { if(await showConfirm("Xóa ca làm này khỏi Nhật Ký?")) { await deleteDoc(doc(db,"work_logs",id)); render(); }};
+window.updateNote = async (id, old) => { const n = await showPrompt("Sửa ghi chú:", old); if(n!==null) { await updateDoc(doc(db,"work_logs",id),{note:n}); }};
+window.del = async (id) => { if(await showConfirm("Xóa ca làm này khỏi Nhật Ký?")) { await deleteDoc(doc(db,"work_logs",id)); }};
 
 window.editLog = (id, start, end, note) => {
   state.editModeId = id;
